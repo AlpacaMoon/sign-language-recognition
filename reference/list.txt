@@ -1,0 +1,75 @@
+0,hello,https://www.handspeak.com/word/1015/
+1,good/thank,https://www.handspeak.com/word/2186/
+2,help,https://www.handspeak.com/word/most-used/1017/,https://www.handspeak.com/word/h/hel/help.mp4
+3,me,https://www.handspeak.com/word/1086/
+4,please,https://www.handspeak.com/word/1658/
+5,sorry,https://www.handspeak.com/word/2027/
+6,welcome,https://www.handspeak.com/word/2380/
+7,welcome,https://www.handspeak.com/word/2380/
+8,ok,https://www.handspeak.com/word/1545/
+9,what,https://www.handspeak.com/word/2383/
+10,what,https://www.handspeak.com/word/2383/
+11,what,https://www.handspeak.com/word/2383/
+12,thank you very much,https://www.handspeak.com/word/2186/
+13,deaf,https://www.handspeak.com/word/539/
+14,profoundly deaf,https://www.handspeak.com/word/539/
+15,profoundly deaf in both ears,https://www.handspeak.com/word/539/
+16,eat/food,https://www.handspeak.com/word/most-used/645/,https://www.handspeak.com/word/most-used/837/
+17,eat a lot,https://www.handspeak.com/word/most-used/645/
+18,eat,https://www.handspeak.com/word/most-used/645/
+19,eat,https://www.handspeak.com/word/most-used/645/
+20,eat up,https://www.handspeak.com/word/most-used/645/
+21,drink,https://www.handspeak.com/word/627/
+22,drink,https://www.handspeak.com/word/627/
+23,apple,https://www.handspeak.com/word/97/
+24,banana,https://www.handspeak.com/word/most-used/630/
+25,drive,https://www.handspeak.com/word/most-used/630/
+26,again,https://www.handspeak.com/word/most-used/51/
+27,also,https://www.handspeak.com/word/most-used/69/
+28,ask,https://www.handspeak.com/word/most-used/69/
+29,yes,https://www.handspeak.com/word/most-used/2443/
+30,no,https://www.handspeak.com/word/most-used/1496/
+31,man,https://www.handspeak.com/word/most-used/1339/,https://www.handspeak.com/word/m/man/man.mp4
+32,man,https://www.handspeak.com/word/most-used/1339/,https://www.handspeak.com/word/m/man/man2.mp4
+33,woman,https://www.handspeak.com/word/most-used/2415/,https://www.handspeak.com/word/w/wom/woman.mp4
+34,woman,https://www.handspeak.com/word/most-used/2415/,https://www.handspeak.com/word/w/wom/woman2.mp4
+35,he/she,https://www.handspeak.com/word/most-used/1671/,https://www.handspeak.com/word/h/he.mp4
+36,bad,https://www.handspeak.com/word/most-used/150/,https://www.handspeak.com/word/b/bad/bad.mp4
+37,have/has/had (formal),https://www.handspeak.com/word/most-used/989/,https://www.handspeak.com/word/h/hav/have2.mp4
+38,have/has/had (informal),https://www.handspeak.com/word/most-used/989/,https://www.handspeak.com/word/h/hav/have.mp4
+39,when,https://www.handspeak.com/word/most-used/2390/,https://www.handspeak.com/word/w/whe/when.mp4
+40,where,https://www.handspeak.com/word/most-used/2391/,https://www.handspeak.com/word/w/whe/where2.mp4
+41,which,https://www.handspeak.com/word/most-used/2393/,https://www.handspeak.com/word/w/whi/which.mp4
+42,who,https://www.handspeak.com/word/most-used/2398/,https://www.handspeak.com/word/w/who/who.mp4
+43,why,https://www.handspeak.com/word/most-used/2399/,https://www.handspeak.com/word/w/why/why.mp4
+44,how,https://www.handspeak.com/word/1067/,https://www.handspeak.com/word/h/how/how.mp4
+45,you,https://www.handspeak.com/word/most-used/2448/,https://www.handspeak.com/word/y/you/you.mp4
+46,boy,https://www.handspeak.com/word/most-used/223/,https://www.handspeak.com/word/b/boy/boy.mp4
+47,girl,https://www.handspeak.com/word/most-used/908/,https://www.handspeak.com/word/g/gir/girl.mp4
+48,friend,https://www.handspeak.com/word/most-used/865/,https://www.handspeak.com/word/f/fri/friend.mp4
+49,finish/complete,https://www.handspeak.com/word/most-used/4917/,https://www.handspeak.com/word/f/fin/finish2.mp4
+50,finish/complete,https://www.handspeak.com/word/most-used/4917/,https://www.handspeak.com/word/f/fin/finish-complete.mp4
+51,forget,https://www.handspeak.com/word/most-used/4917/,https://www.handspeak.com/word/f/for/forget.mp4
+52,forget,https://www.handspeak.com/word/most-used/4917/,https://www.handspeak.com/word/f/for/forget-disappear.mp4
+53,give,https://www.handspeak.com/word/most-used/910/,https://www.handspeak.com/word/g/giv/give2.mp4
+54,give you,https://www.handspeak.com/word/most-used/910/,https://www.handspeak.com/word/g/giv/give-you.mp4
+55,give me,https://www.handspeak.com/word/most-used/910/,https://www.handspeak.com/word/g/giv/give-me.mp4
+56,go,https://www.handspeak.com/word/most-used/918/,https://www.handspeak.com/word/g/go/go-to.mp4
+57,get,https://www.handspeak.com/word/most-used/901/,https://www.handspeak.com/word/g/get/get.mp4
+58,understand/comprehend,https://www.handspeak.com/word/2292/,https://www.handspeak.com/word/u/und/understand.mp4
+59,use,https://www.handspeak.com/word/most-used/2307/,https://www.handspeak.com/word/u/use/use.mp4
+60,will,https://www.handspeak.com/word/most-used/2401/,https://www.handspeak.com/word/w/wil/will.mp4
+61,with,https://www.handspeak.com/word/most-used/2412/,https://www.handspeak.com/word/w/wit/with.mp4
+62,wait,https://www.handspeak.com/word/most-used/2341/,https://www.handspeak.com/word/w/wai/wait.mp4
+63,work,https://www.handspeak.com/word/most-used/2423/,https://www.handspeak.com/word/w/wor/work.mp4
+64,they,https://www.handspeak.com/word/most-used/2195/,https://www.handspeak.com/word/t/the/they.mp4
+65,their,https://www.handspeak.com/word/most-used/2715/,https://www.handspeak.com/word/t/the/their.mp4
+66,school,https://www.handspeak.com/word/most-used/1889/,https://www.handspeak.com/word/s/sch/school.mp4
+67,write,https://www.handspeak.com/word/most-used/2436/,https://www.handspeak.com/word/w/wri/write.mp4
+68,send text/message,https://www.handspeak.com/word/most-used/2114/,https://www.handspeak.com/word/t/tex/text-send.mp4
+69,email,https://www.handspeak.com/word/most-used/659/,https://www.handspeak.com/word/e/ema/email-verb.mp4
+70,email,https://www.handspeak.com/word/most-used/659/,https://www.handspeak.com/word/e/ema/email.mp4
+71,home,https://www.handspeak.com/word/most-used/1046/,https://www.handspeak.com/word/h/hom/home.mp4
+72,but,https://www.handspeak.com/word/most-used/290/,https://www.handspeak.com/word/b/but/but.mp4
+73,should,https://www.handspeak.com/word/most-used/1952/,https://www.handspeak.com/word/s/sho/should.mp4
+74,please,https://www.handspeak.com/word/most-used/1658/,https://www.handspeak.com/word/p/ple/please.mp4
