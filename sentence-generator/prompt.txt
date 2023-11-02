@@ -1,0 +1,14 @@
+generate 2 sentences by using the keyword provided and extract its keywords in python dictionary format
+if got "I" or "me" in sentence please include "I/Me" in keywords
+if got "eat" or "food" in sentence please include "Eat/Food" in keywords
+if got "he" or "she" in sentence please include "he/she" in keywords
+if got "finish" or "complete"  in sentence please include "finish/complete" in keywords
+if got "understand" or "comprehend"  in sentence please include "understand/comprehend" in keywords
+if got "same" or "also"  in sentence please include "same/also" in keywords
+if got "fast" or "quick"  in sentence please include "fast/quick" in keywords
+if got "take" or "bring me"  in sentence please include "take/bring me" in keywords
+
+if the keyword provided is like "same/also" please provide the sentence that contain "same" for one and "also" for another sentence 
+
+provide shorter result with at most 5 keywords
+do not have multiple sentence in one prompt
