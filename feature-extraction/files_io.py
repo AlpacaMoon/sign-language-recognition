@@ -1,6 +1,7 @@
 from constants import ACTION_LABELS_PATH, KEYPOINTS_PATH
 import csv
 import os
+import numpy as np
 
 def readActionLabels():
     action_labels = []
@@ -23,3 +24,7 @@ def initActionLabelFolders(action_labels):
     for action in action_labels:
         if not os.path.exists(os.path.join(KEYPOINTS_PATH, action)):
             os.makedirs(os.path.join(KEYPOINTS_PATH, action))
+
+
+def saveKeypoints(action, filename, keypoints):
+    np.save(os.path.join(KEYPOINTS_PATH, action, filename), keypoints)
