@@ -1,7 +1,7 @@
 import os
 
 # How many video records / training data each label should have
-TRAININGS_PER_LABEL = 100
+TRAININGS_PER_LABEL = 200
 
 # How many frames each video record / training data should have
 FRAMES_PER_TRAINING = 1
