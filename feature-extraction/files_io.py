@@ -2,6 +2,7 @@ from constants import ACTION_LABELS_PATH, KEYPOINTS_PATH
 import csv
 import os
 import numpy as np
+import re
 
 def readActionLabels():
     action_labels = []
@@ -26,5 +27,9 @@ def initActionLabelFolders(action_labels):
             os.makedirs(os.path.join(KEYPOINTS_PATH, action))
 
 
-def saveKeypoints(action, filename, keypoints):
-    np.save(os.path.join(KEYPOINTS_PATH, action, filename), keypoints)
+def saveKeypoints(action, filename, keypoints, replacement_char="_"):
+    invalid_chars_pattern = r'[\/:*?"<>|]'
+    _action = re.sub(invalid_chars_pattern, replacement_char, action)
+    _filename = re.sub(invalid_chars_pattern, replacement_char, filename)
+    
+    np.save(os.path.join(KEYPOINTS_PATH, _action, _filename), keypoints)
