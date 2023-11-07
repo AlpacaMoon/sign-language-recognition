@@ -1,6 +1,6 @@
 A,
 B,
-C,
+C, not good
 D,
 E,
 F,
@@ -12,14 +12,14 @@ K,
 L,
 M,
 N,
-O,
+O, not good
 P,
 Q,
-R,
+R, not good
 S,
 T,
-U,
-V,
+U, not good
+V, not good
 W,
 X,
 Y,
