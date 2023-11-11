@@ -80,6 +80,6 @@ def split_words(input_string):
 
 if __name__ == "__main__":
     DEFAULT_LANGUAGE_MODEL = load_default_language_model()
-    input_string = "goodworksand"
+    input_string = "Mynameisadam"
     words = split_words(input_string)
     print(words)
