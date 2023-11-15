@@ -1,6 +1,6 @@
 A,
 B,
-C, not good
+C, not good, not good
 D,
 E,
 F,
@@ -12,7 +12,7 @@ K,
 L,
 M,
 N,
-O, not good
+O, not good, not good
 P,
 Q,
 R, not good
@@ -24,7 +24,6 @@ W,
 X,
 Y,
 Z,
-0,
 1,
 2,
 3,
@@ -34,6 +33,7 @@ Z,
 7,
 8,
 9,
+10,
 airplane,https://www.handspeak.com/word/56/
 ship,https://www.handspeak.com/word/4595/ 
 car,https://www.handspeak.com/word/319/ 
