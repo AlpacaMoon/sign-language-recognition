@@ -10,6 +10,6 @@ FRAMES_PER_TRAINING = 1
 KEYPOINTS_PER_FRAME = 240
 
 
-STATIC_LABELS_PATH = os.path.join('../static-recognition/static-labels.csv')
+STATIC_LABELS_PATH = os.path.join('../static_recognition/static_labels.csv')
 
-KEYPOINTS_PATH = os.path.join("../static-recognition/keypoints_data")
+KEYPOINTS_PATH = os.path.join("../static_recognition/keypoints_data_hand")
