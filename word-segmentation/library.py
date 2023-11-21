@@ -1,3 +1,3 @@
 import wordninja
-words = wordninja.split("ilikeapple")
+words = wordninja.split("aapple")
 print(words)
