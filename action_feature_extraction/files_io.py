@@ -1,4 +1,4 @@
-from .constants import ACTION_LABELS_PATH, KEYPOINTS_PATH
+from constants import ACTION_LABELS_PATH, KEYPOINTS_PATH
 import csv
 import os
 import numpy as np

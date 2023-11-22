@@ -6,13 +6,14 @@ from concurrent.futures import ThreadPoolExecutor
 
 from .cvzone_preprocess import *
 
-# Detects hands, face & pose,
-# convert them into normalized landmark/keypoint coordinates in a 1D-array,
-# and also returns the frame with the landmark connections drawn onto it
-def parallelFeatureExtraction(
-    handDetector, faceDetector, poseDetector, frame, draw=True
-):
-    def detectHands(handDetector, frame, frameSize, draw):
+class FeatureExtractionModule():
+    def __init__(self, **kwargs):
+        # Detectors
+        self.handDetector = HandDetector(detectionCon=0.5, maxHands=2)
+        self.faceDetector = FaceDetector(minDetectionCon=0.5)
+        self.poseDetector = PoseDetector(detectionCon=0.5)
+
+    def detectHands(self, handDetector, frame, frameSize, draw):
         results = None
         # Hand Detection
         if draw:
@@ -37,7 +38,7 @@ def parallelFeatureExtraction(
     # Pose Detection
     # **We only use the first 23 out of the total 33 landmark points
     #   as those represent the lower half body and are irrelevant to sign language interpretation
-    def detectPose(poseDetector, frame, draw):
+    def detectPose(self, poseDetector, frame, draw):
         frame = poseDetector.findPose(frame, draw=draw)
         results, _ = poseDetector.findPosition(frame, bboxWithHands=False)
         if results:
@@ -47,7 +48,7 @@ def parallelFeatureExtraction(
         return results
 
     # Face Detection
-    def detectFace(faceDetector, frame, frameSize, draw):
+    def detectFace(self, faceDetector, frame, frameSize, draw):
         frame, results = faceDetector.findFaces(frame, draw=draw)
         if results:
             results = select_best_matching_face(results, frameSize)
@@ -60,40 +61,39 @@ def parallelFeatureExtraction(
             }
         return results
 
-    frameSize = (frame.shape[1], frame.shape[0])
-    with ThreadPoolExecutor() as executor:
-        t1 = executor.submit(detectHands, handDetector, frame, frameSize, draw)
-        t2 = executor.submit(detectPose, poseDetector, frame, draw)
-        t3 = executor.submit(detectFace, faceDetector, frame, frameSize, draw)
+    # Detects hands, face & pose,
+    # convert them into normalized landmark/keypoint coordinates in a 1D-array,
+    # and also returns the frame with the landmark connections drawn onto it
+    def parallelFeatureExtraction(
+        self, handDetector, faceDetector, poseDetector, frame, draw=True
+    ):
+        frameSize = (frame.shape[1], frame.shape[0])
+        with ThreadPoolExecutor() as executor:
+            t1 = executor.submit(self.detectHands, handDetector, frame, frameSize, draw)
+            t2 = executor.submit(self.detectPose, poseDetector, frame, draw)
+            t3 = executor.submit(self.detectFace, faceDetector, frame, frameSize, draw)
 
-        # Convert results into 1D-array
-        detectionResults = flatten2dList(
-            [
-                flattenDetectionResult(t1.result()[0]),
-                flattenDetectionResult(t1.result()[1]),
-                t2.result(),
-                t3.result()["bbox"],
-                t3.result()["center"],
-                t3.result()["center"] - t1.result()[0]["center"],
-                t3.result()["center"] - t1.result()[1]["center"],
-            ],
-            dataType=float,
+            # Convert results into 1D-array
+            detectionResults = flatten2dList(
+                [
+                    flattenDetectionResult(t1.result()[0]),
+                    flattenDetectionResult(t1.result()[1]),
+                    t2.result(),
+                    t3.result()["bbox"],
+                    t3.result()["center"],
+                    t3.result()["center"] - t1.result()[0]["center"],
+                    t3.result()["center"] - t1.result()[1]["center"],
+                ],
+                dataType=float,
+            )
+
+            return detectionResults, frame
+
+
+    def extractFeatures(self, frame):
+
+        detectionResults, frame = self.parallelFeatureExtraction(
+            self.handDetector, self.faceDetector, self.poseDetector, frame
         )
 
         return detectionResults, frame
-
-
-def extractFeatures(frame):
-    # Detectors
-    handDetector = HandDetector(detectionCon=0.5, maxHands=2)
-    faceDetector = FaceDetector(minDetectionCon=0.5)
-    poseDetector = PoseDetector(detectionCon=0.5)
-
-    detectionResults, frame = parallelFeatureExtraction(
-        handDetector, faceDetector, poseDetector, frame
-    )
-
-    return detectionResults, frame
-
-def testFunc():
-    return 456789

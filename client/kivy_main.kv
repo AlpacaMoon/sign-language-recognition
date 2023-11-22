@@ -1,0 +1,29 @@
+<MainScreen>:
+    canvas.before:
+        Rectangle:
+            size: root.size
+            source: 'static/images/back.jpg'
+    ActionBar:
+        pos_hint: {'top':1}
+        background_color: 0, 0, 0, .1
+        ActionView:
+            use_separator: True
+            ActionPrevious:
+                app_icon: 'static/images/account.png'
+                title: 'Account Maintainer'
+                color: 0, 0, 0, 0 
+                with_previous: False
+            ActionButton:
+                id: menu
+                icon: 'static/images/menu.png'
+                on_press: root.menu_action()
+
+<SideBar>:
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, .6 
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    size_hint: (.8, 1)
+    pos_hint: {'right': 1}

@@ -1,0 +1,118 @@
+
+
+from kivymd.app import MDApp
+from kivy.lang import Builder
+from kivy.uix.image import Image
+from kivy.clock import Clock
+from kivy.graphics.texture import Texture
+from kivy.uix.boxlayout import BoxLayout
+import numpy as np
+import cv2
+import os
+
+from action_feature_extraction import FeatureExtractionModule
+
+
+kv_script_main = """
+Screen:
+    MDNavigationLayout:
+        ScreenManager:
+            Screen:
+                BoxLayout:
+                    orientation: "vertical"
+                    
+                    MDTopAppBar:
+                        title: "Sign Language Translation App"
+                        right_action_items: [["cog", lambda x: nav_drawer.set_state("open")]]
+                        elevation: 8
+                    
+                    BoxLayout:
+                        id: mainarea
+
+        MDNavigationDrawer:
+            id: nav_drawer
+            anchor: 'right'         
+"""
+
+kv_script_inner = """
+MDRaisedButton:
+    text: "Start/Stop"
+    id: webcam_play_btn
+    halign: 'center'
+"""
+
+class KivyCamera(Image):
+    def __init__(self, capture, fps, **kwargs):
+        super(KivyCamera, self).__init__(**kwargs)
+        self.capture = capture
+        self.playing = False
+
+        # FPS here implies the video's refresh rate, but not the webcam's actual FPS
+        self.fps = fps
+
+        self.previousRawFrame = np.zeros(1)
+
+        self.featureExtractionModule = FeatureExtractionModule()
+        self.start()
+
+    def start(self):
+        self.playing = True
+        self.schedule = Clock.schedule_interval(self.update, 1.0 / self.fps)
+
+    def stop(self):
+        self.playing = False
+        self.schedule.cancel()
+
+    def update(self, dt):
+        ret, rawFrame = self.capture.read()
+
+        # Only start processing if the current frame has been updated
+        # This is the because the webcam's FPS might fluctuate (Especially under heavy load) 
+        # Causing mismatch between video FPS/refresh rate and the webcam's FPS
+        if ret and not np.array_equal(rawFrame, self.previousRawFrame):
+            self.previousRawFrame = rawFrame
+
+            # Flip so that the user see's mirror image
+            flippedFrame = cv2.flip(rawFrame, 1)
+            
+            # Extract Features
+            detectionResults, frame = self.featureExtractionModule.extractFeatures(flippedFrame)
+
+            # Flip vertically because of how image texture is displayed 
+            frame = cv2.flip(frame, 0)
+
+            # Flatten to 1D array (np.flatten is slower than reshape)
+            frameLen = frame.shape[0] * frame.shape[1] * frame.shape[2]
+            buf = frame.reshape(frameLen)
+
+            # Update texture
+            image_texture = Texture.create(
+                size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
+            image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
+            self.texture = image_texture
+
+class MainApp(MDApp):
+    def build(self):
+        # Webcam
+        self.capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        self.my_camera = KivyCamera(capture=self.capture, fps=30)
+
+        # UI Init
+        self.theme_cls.primary_palette = "Red"
+        self.theme_cls.theme_style = "Dark"
+        self.theme_cls.primary_hue = "600"
+
+        screen = Builder.load_string(kv_script_main)
+
+        innerBox = BoxLayout()
+        innerBox.add_widget(self.my_camera)
+
+        innerBox.add_widget(Builder.load_string(kv_script_inner))
+
+        screen.ids.mainarea.add_widget(innerBox)
+        return screen
+
+
+MainApp().run()
