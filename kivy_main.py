@@ -1,7 +1,5 @@
-
-
-
-
+from queue import Queue
+from threading import Thread
 from kivymd.app import MDApp
 from kivy.lang import Builder
 from kivy.uix.image import Image
@@ -10,10 +8,9 @@ from kivy.graphics.texture import Texture
 from kivy.core.window import Window
 import numpy as np
 import cv2
-import os
-
 
 from action_feature_extraction import FeatureExtractionModule
+from client.server_comm import start_websocket_task
 
 
 
@@ -165,7 +162,16 @@ class MainApp(MDApp):
 
 if __name__ == "__main__":
 
+    # Server Communication API Link
+    action_translation_uri = "ws://your-server-ip:8000/ws"
+
+    # Shared Queue with the server communication thread
+    server_comm_queue = Queue()
+
+    # Start server communication thread
+    server_comm_thread = Thread(target=start_websocket_task, args=(action_translation_uri, server_comm_queue))
+    server_comm_thread.start()
+
     MainApp().run()
-
-
-
+    
+    

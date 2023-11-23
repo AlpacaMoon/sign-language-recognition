@@ -1,6 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import numpy as np
 from starlette.middleware.cors import CORSMiddleware
+import json
 import logging
 
 app = FastAPI()
@@ -14,7 +15,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("server.log")
+    ]
+)
 
 # WebSocket route for handling communication
 @app.websocket("/ws")
@@ -24,24 +32,26 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_bytes()
-            frame = np.frombuffer(data, dtype=np.float32).reshape((1280, 720))
+            data_shape_json = json.loads(await websocket.receive_text())
+
+            data_shape = tuple(data_shape_json['shape'])
+            frame = np.frombuffer(data, dtype=np.float32).reshape(data_shape)
 
             # Perform processing using your module
-            processed_frame = process_frame(frame)
-
-            # Serialize the processed frame
-            processed_frame_data = processed_frame.tobytes()
+            result = process_frame(frame)
 
             # Send the processed frame back to the client
-            await websocket.send_bytes(processed_frame_data)
+            await websocket.send_text(result)
+            # await websocket.send_bytes(processed_frame_data)
+
     except WebSocketDisconnect:
-        logger.info(f"WebSocket client disconnected. Closing connection. ")
-        await websocket.close()
+        logging.info(f"WebSocket client disconnected. Closing connection. ")
+        
     except Exception as e:
-        logger.exception(f"Error in WebSocket communication: {str(e)}")
+        logging.error(f"Error in WebSocket communication: {str(e)}")
         await websocket.close(code=1011)    # Internal Error
 
 # Perform server-side processing, i.e. sign prediction
 def process_frame(frame):
     # ...
-    return frame
+    return 'Peanuts'
