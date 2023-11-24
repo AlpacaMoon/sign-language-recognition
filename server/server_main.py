@@ -52,6 +52,7 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.close(code=1011)    # Internal Error
 
 # Perform server-side processing, i.e. sign prediction
-def process_frame(frame):
-    # ...
-    return 'Peanuts'
+def process_frame(frame=np.ndarray):
+    sum = np.sum(frame)
+    avg = np.average(frame)
+    return f'The sum is {sum} and the average is {avg}. The shape is {frame.shape}.'
