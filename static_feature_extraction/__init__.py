@@ -1,1 +1,1 @@
-from .main import extractFeatures, testFunc
+from .main import FeatureExtractionModule
