@@ -6,7 +6,6 @@ class SentenceGenerator:
     def __init__(self, **kwargs):
         # Load the saved tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(self.localModelPath)
-
         # Load the saved model
         self.model = AutoModelForSeq2SeqLM.from_pretrained(self.localModelPath)
 
@@ -18,7 +17,7 @@ class SentenceGenerator:
         return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
     
     def update_model(self):
-        tokenizer = AutoTokenizer.from_pretrained(self.hugginFaceModelId)
-        tokenizer.save_pretrained(self.localModelPath)
-        model = AutoModelForSeq2SeqLM.from_pretrained(self.hugginFaceModelId)
-        model.save_pretrained(self.localModelPath)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.hugginFaceModelId)
+        self.tokenizer.save_pretrained(self.localModelPath)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(self.hugginFaceModelId)
+        self.model.save_pretrained(self.localModelPath)
