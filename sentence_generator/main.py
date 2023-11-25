@@ -1,9 +1,13 @@
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+import os
 
 class SentenceGenerator:
     hugginFaceModelId = "EngLip/flan-t5-sentence-generator"
     localModelPath = "./sentence_generator/model"
-    def __init__(self, **kwargs):
+    def __init__(self):
+        if not os.path.isdir(self.localModelPath):
+            self.update_model()
+
         # Load the saved tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(self.localModelPath)
         # Load the saved model
@@ -20,4 +24,4 @@ class SentenceGenerator:
         self.tokenizer = AutoTokenizer.from_pretrained(self.hugginFaceModelId)
         self.tokenizer.save_pretrained(self.localModelPath)
         self.model = AutoModelForSeq2SeqLM.from_pretrained(self.hugginFaceModelId)
-        self.model.save_pretrained(self.localModelPath)
+        self.model.save_pretrained(self.localModelPath)        
