@@ -1,19 +1,15 @@
 import numpy as np
 from cvzone.HandTrackingModule import HandDetector
-from cvzone.FaceDetectionModule import FaceDetector
-from cvzone.PoseModule import PoseDetector
 from concurrent.futures import ThreadPoolExecutor
 
-from action_feature_extraction.cvzone_preprocess import *
+from cvzone_preprocess import *
 
+class FeatureExtractionModule():
+    def __init__(self, **kwargs):
+        # Detectors
+        self.handDetector = HandDetector(detectionCon=0.5, maxHands=2)
 
-# Detects hands, face & pose,
-# convert them into normalized landmark/keypoint coordinates in a 1D-array,
-# and also returns the frame with the landmark connections drawn onto it
-def parallelFeatureExtraction(
-    handDetector, frame, draw=True
-):
-    def detectHands(handDetector, frame, frameSize, draw):
+    def detectHands(self, handDetector, frame, frameSize, draw):
         results = None
         # Hand Detection
         if draw:
@@ -35,40 +31,40 @@ def parallelFeatureExtraction(
             results[1] = preprocess_body_part(results[1], frameSize)
         return results
 
-    frameSize = (frame.shape[1], frame.shape[0])
-    with ThreadPoolExecutor() as executor:
-        t1 = executor.submit(detectHands, handDetector, frame, frameSize, draw)
-        # t2 = executor.submit(detectPose, poseDetector, frame, draw)
-        # t3 = executor.submit(detectFace, faceDetector, frame, frameSize, draw)
 
-        # Convert results into 1D-array
-        detectionResults = flatten2dList(
-            [
-                flattenDetectionResult(t1.result()[0]),
-                flattenDetectionResult(t1.result()[1]),
-                # t2.result(),
-                # t3.result()["bbox"],
-                # t3.result()["center"],
-                # t3.result()["center"] - t1.result()[0]["center"],
-                # t3.result()["center"] - t1.result()[1]["center"],
-            ],
-            dataType=float,
+    # Detects hands, face & pose,
+    # convert them into normalized landmark/keypoint coordinates in a 1D-array,
+    # and also returns the frame with the landmark connections drawn onto it
+    def parallelFeatureExtraction(
+        self, handDetector, faceDetector, poseDetector, frame, draw=True
+    ):
+        frameSize = (frame.shape[1], frame.shape[0])
+        with ThreadPoolExecutor() as executor:
+            t1 = executor.submit(self.detectHands, handDetector, frame, frameSize, draw)
+            t2 = executor.submit(self.detectPose, poseDetector, frame, draw)
+            t3 = executor.submit(self.detectFace, faceDetector, frame, frameSize, draw)
+
+            # Convert results into 1D-array
+            detectionResults = flatten2dList(
+                [
+                    flattenDetectionResult(t1.result()[0]),
+                    flattenDetectionResult(t1.result()[1]),
+                    t2.result(),
+                    t3.result()["bbox"],
+                    t3.result()["center"],
+                    t3.result()["center"] - t1.result()[0]["center"],
+                    t3.result()["center"] - t1.result()[1]["center"],
+                ],
+                dataType=float,
+            )
+
+            return detectionResults, frame
+
+
+    def extractFeatures(self, frame):
+
+        detectionResults, frame = self.parallelFeatureExtraction(
+            self.handDetector, self.faceDetector, self.poseDetector, frame
         )
 
         return detectionResults, frame
-
-
-def extractFeatures(frame):
-    # Detectors
-    handDetector = HandDetector(detectionCon=0.5, maxHands=2)
-    # faceDetector = FaceDetector(minDetectionCon=0.5)
-    # poseDetector = PoseDetector(detectionCon=0.5)
-
-    detectionResults, frame = parallelFeatureExtraction(
-        handDetector, frame
-    )
-
-    return detectionResults, frame
-
-def testFunc():
-    return 456789
