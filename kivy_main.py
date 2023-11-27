@@ -86,6 +86,7 @@ class MainApp(MDApp):
         return self.screen
     
     def on_start(self):
+        print(self.screen.ids)
         self._updateWidgetVisibility(self.screen.ids.translate_expand_container, self.settings['translate'])
 
     def toggle_play_stop_button(self, instance: MDFillRoundFlatIconButton):
