@@ -17,7 +17,6 @@ from kivy_components import KivyCamera, main_builder_string
 class AdaptiveHeightLabel(MDLabel):
     ...
 
-    
 
 class MainApp(MDApp):
     def build(self):
@@ -34,10 +33,15 @@ class MainApp(MDApp):
         self.settings['playing'] = False
         self.settings['detectionMode'] = "Dynamic"
         self.settings['predictionMode'] = "Local"
-        self.settings['text_to_speech'] = False
+
         self.settings['sentence_assembler'] = True
+        
+        self.settings['text_to_speech'] = False
+        
         self.settings['translate'] = False
         self.settings['translate_target'] = ""
+        self.settings['translate_engine'] = "Google"
+        
         self.settings['show_fps'] = False
 
         self.settings['raw_output'] = []
@@ -82,16 +86,7 @@ class MainApp(MDApp):
         return self.screen
     
     def on_start(self):
-        
-        target_widget = self.screen.ids.translate_target_field
-        if self.settings['translate']:
-            target_widget.opacity = 1
-            target_widget.size_hint_y = None
-            target_widget.disabled = False
-        else:
-            target_widget.opacity = 0
-            target_widget.size_hint_y = 0
-            target_widget.disabled = True
+        self._updateWidgetVisibility(self.screen.ids.translate_expand_container, self.settings['translate'])
 
     def toggle_play_stop_button(self, instance: MDFillRoundFlatIconButton):
         self.settings['playing'] = not self.settings['playing']
@@ -129,16 +124,8 @@ class MainApp(MDApp):
 
     def on_active_translation(self, instance_switch, active_value: bool):
         self.settings['translate'] = active_value
+        self._updateWidgetVisibility(self.screen.ids.translate_expand_container, self.settings['translate'])
 
-        target_widget = self.screen.ids.translate_target_field
-        if self.settings['translate']:
-            target_widget.opacity = 1
-            target_widget.size_hint_y = None
-            target_widget.disabled = False
-        else:
-            target_widget.opacity = 0
-            target_widget.size_hint_y = 0
-            target_widget.disabled = True
 
     def set_translate_target(self, x):
         self.settings['translate_target'] = x
@@ -149,10 +136,25 @@ class MainApp(MDApp):
     def on_active_show_fps(self, instance_switch, active_value: bool):
         self.settings['show_fps'] = active_value
 
-    def updateLabel(self, text_list, label_id):
-        
+    def updateLabel(self, text_list, label_id):    
         self.screen.ids[label_id].text = str(' '.join(text_list))
 
+    def _showWidget(self, target_widget):
+        target_widget.opacity = 1
+        target_widget.size_hint_y = None
+        target_widget.disabled = False
+
+    def _hideWidget(self, target_widget):
+        target_widget.opacity = 0
+        target_widget.size_hint_y = 0
+        target_widget.disabled = True
+
+    def _updateWidgetVisibility(self, target_widget, show):
+        if show:
+            self._showWidget(target_widget)
+        else:
+            self._hideWidget(target_widget)
+        
 
 if __name__ == "__main__":
     try:

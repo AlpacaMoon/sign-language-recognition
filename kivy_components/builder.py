@@ -182,17 +182,51 @@ Screen:
                                             text: " Translate Output"
 
                                     MDBoxLayout:
-                                        adaptive_height: True
-                                        orientation: "horizontal"
-                                        
-                                        MDTextField:
-                                            id: translate_target_field
-                                            pos_hint: {'center_x': .5, 'center_y': .6}
-                                            size_hint_x: 1
-                                            # width: '200dp'
-                                            hint_text: "Translate to ..."
-                                            on_focus: if self.focus: app.translate_menu.open()
-                                            
+                                    
+                                        orientation: "vertical"
+                                        id: translate_expand_container
+
+                                        MDBoxLayout:
+                                            adaptive_height: True
+                                            orientation: "horizontal"
+
+                                            AdaptiveHeightLabel: 
+                                                text: "Translate to:"
+                                                font_style: "Subtitle1"
+                                                pos_hint: {'center_x': .5, 'center_y': .6}
+                                                
+                                            MDDropDownItem:
+                                                id: translate_target_field
+                                                pos_hint: {'center_x': .5, 'center_y': .5}
+                                                size_hint_x: 1
+                                                text: "Chinese"
+                                                on_release: app.translate_menu.open()
+                                                        
+                                        MDBoxLayout:
+                                            adaptive_height: True
+                                            orientation: "vertical"
+                                            line_color: app.theme_cls.primary_dark
+                                            padding: '5dp'
+                                            radius: 10
+                                            line_width: 0.35
+
+                                            AdaptiveHeightLabel: 
+                                                text: "Translation Engine"
+                                                font_style: "Subtitle1"
+                                                
+                                            MDSegmentedControl:
+                                                pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                                                segment_color: app.theme_cls.primary_color
+                                                md_bg_color: app.theme_cls.bg_light
+                                                on_active: app.on_active_model_running_location(*args)
+                                                id: detection_mode_control
+
+                                                MDSegmentedControlItem:
+                                                    text: "Google"
+
+                                                MDSegmentedControlItem:
+                                                    text: "MyMemory"
+
                                     ScrollView:
 
         MDNavigationDrawer:
