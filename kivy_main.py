@@ -32,8 +32,6 @@ Screen:
             title: "Sign Language Translation App"
             elevation: 8
 
-        
-
         # Main Area
         FloatLayout:
             # Left Panel for video display
@@ -164,8 +162,6 @@ Screen:
                         #     label: "Translate to:"
                         #     menu_name: "translate_menu"
             
-
-        
 <DropdownSelect>
     adaptive_height: True
     orientation: "horizontal"
