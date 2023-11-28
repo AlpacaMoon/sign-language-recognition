@@ -56,14 +56,16 @@ class KivyCamera(Image):
             flippedFrame = cv2.flip(rawFrame, 1)
 
             # Extract Features
-            if self.settings["detectionMode"] == "Dynamic":
+            frame = None
+            detectionResults = None
+            if self.settings["detection_mode"] == "Dynamic":
                 # Dynamic sign prediction
                 detectionResults, frame = self.featureExtractionModule.extractFeatures(
                     flippedFrame
                 )
 
                 # Predict word
-                if self.settings["predictionMode"] == "Local":
+                if self.settings["prediction_mode"] == "Local":
                     # Run model.predict(...)
                     ...
                 else:
