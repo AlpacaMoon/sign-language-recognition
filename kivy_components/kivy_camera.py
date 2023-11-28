@@ -25,8 +25,6 @@ class KivyCamera(Image):
 
         self.featureExtractionModule = FeatureExtractionModule()
 
-
-
     def start(self):
         if not self.playing:
             self.playing = True
@@ -58,6 +56,7 @@ class KivyCamera(Image):
             # Extract Features
             frame = None
             detectionResults = None
+            predictionResults = None
             if self.settings["detection_mode"] == "Dynamic":
                 # Dynamic sign prediction
                 detectionResults, frame = self.featureExtractionModule.extractFeatures(
@@ -70,11 +69,21 @@ class KivyCamera(Image):
                     ...
                 else:
                     # Send result to remote server
+                    predictionResults = "Apple"
                     ...
 
             else:
                 # Static sign prediction
                 ...
+
+                # Predict word
+                if self.settings["prediction_mode"] == "Local":
+                    # Run model.predict(...)
+                    ...
+                else:
+                    # Send result to remote server
+                    predictionResults = "Banana"
+                    ...
 
             # Output
             self.settings["raw_output"].append("Hello")

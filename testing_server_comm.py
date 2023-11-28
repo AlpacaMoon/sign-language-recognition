@@ -9,7 +9,7 @@ from client.server_comm import start_websocket_task
 if __name__ == "__main__":
 
     # Server Communication API Link
-    action_translation_uri = "ws://52.221.215.40:80/ws"
+    action_translation_uri = "ws://54.254.3.224:80/ws"
 
     # Shared Queue with the server communication thread
     server_comm_queue = Queue()

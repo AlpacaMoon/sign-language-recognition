@@ -7,4 +7,5 @@ git clone -n --depth=1 --filter=tree:0 https://github.com/AlpacaMoon/sign-langua
 cd sign-language-recognition
 git sparse-checkout set --no-cone server
 git checkout
+cd server
 uvicorn server_main:app --host 0.0.0.0 --port 80

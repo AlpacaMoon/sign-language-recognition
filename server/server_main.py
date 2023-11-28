@@ -42,7 +42,6 @@ async def websocket_endpoint(websocket: WebSocket):
 
             # Send the processed frame back to the client
             await websocket.send_text(result)
-            # await websocket.send_bytes(processed_frame_data)
 
     except WebSocketDisconnect:
         logging.info(f"WebSocket client disconnected. Closing connection. ")
