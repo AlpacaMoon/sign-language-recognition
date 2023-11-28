@@ -1,12 +1,11 @@
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-import os
+import time
 
 class SentenceGenerator:
     hugginFaceModelId = "EngLip/flan-t5-sentence-generator"
     localModelPath = "./sentence_generator/model"
-    tokenizer = AutoTokenizer
-    model = AutoModelForSeq2SeqLM
-    
+    # tokenizer = AutoTokenizer
+    # model = AutoModelForSeq2SeqLM
     def __init__(self):
         self.download_model()
         # # Load the saved tokenizer
@@ -26,3 +25,14 @@ class SentenceGenerator:
         # self.tokenizer.save_pretrained(self.localModelPath)
         self.model = AutoModelForSeq2SeqLM.from_pretrained(self.hugginFaceModelId)
         # self.model.save_pretrained(self.localModelPath)
+        
+# sg = SentenceGenerator()
+# start_time = time.time()
+# print(sg.generate("i/me, eat, cake, el, KL Tower"))
+# end_time = time.time()
+# print(end_time-start_time)
+
+# start_time = time.time()
+# print(sg.generate("i/me, eat, shit"))
+# end_time = time.time()
+# print(end_time-start_time)
