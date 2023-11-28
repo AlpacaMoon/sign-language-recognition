@@ -53,38 +53,47 @@ Screen:
                         orientation: "vertical"
                         padding: 10
 
-                        BoxLayout:
-                            MDCard:
-                                padding: 10
-                                size_hint: 1, 1
-                                MDRelativeLayout:
-                                    MDLabel:
-                                        id: raw_output_box
-                                        text: "Something"
-                                        color: "grey"
-                                        halign: "left"
-                                        valign: "center"
-                                        bold: True
-                                        font_style: "H6"
+                        MDBoxLayout:
+                            md_bg_color: app.theme_cls.bg_light
+                            radius: '6dp'
+                            padding: '20dp', '10dp', '20dp', '10dp'
+                            orientation: "vertical"
 
-                        BoxLayout:
-                            size_hint_y: None
+                            MDLabel: 
+                                adaptive_height: True
+                                text: "RAW OUTPUT"
+                                font_style: "Caption"
+                                color: "grey"
+                                
+                            MDLabel: 
+                                id: raw_output_box
+                                text: "I want an apple yummy yummy"
+                                font_style: "H5"
+                                bold: True
+                                color: "#bfbfbf"
+
+                        MDBoxLayout:
+                            adaptive_height: True
                             height: "10dp"
 
-                        BoxLayout:
-                            MDCard:
-                                padding: 10
-                                size_hint: 1, 1
+                        MDBoxLayout:
+                            md_bg_color: app.theme_cls.bg_light
+                            radius: '6dp'
+                            padding: '20dp', '10dp', '20dp', '10dp'
+                            orientation: "vertical"
+
+                            MDLabel: 
+                                adaptive_height: True
+                                text: "TRANSFORMED OUTPUT"
+                                font_style: "Caption"
+                                color: "grey"
                                 
-                                MDRelativeLayout:
-                                    MDLabel:
-                                        id: transformed_output_box
-                                        text: "Something"
-                                        color: "grey"
-                                        halign: "left"
-                                        valign: "center"
-                                        bold: True
-                                        font_style: "H6"
+                            MDLabel: 
+                                id: transformed_output_box
+                                text: "I want an apple yummy yummy"
+                                font_style: "H5"
+                                bold: True
+                                color: "#bfbfbf"
 
             # Right Panel for output/translation display
             BoxLayout:
