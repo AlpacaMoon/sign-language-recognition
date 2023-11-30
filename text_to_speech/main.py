@@ -1,10 +1,42 @@
+
 from gtts import gTTS
 from playsound import playsound
+import pyttsx3
 import os
 from threading import Thread
 
+class TextToSpeechModule:
+    def __init__(self, engine="gTTS", **kwargs):
+        self.engine = engine
+        self.engineMappings = {
+            'gTTS': GttsModule(),
+            'Pyttsx3': Pyttsx3Module(),
+            'OS': OsModule(),
+        }
 
-class GttsTextToSpeechModule:
+    def textToSpeech(self, text):
+        return self.engineMappings[self.engine].textToSpeech(text)
+    
+    def switchEngine(self, engineName):
+        temp = self.engineMappings.get(engineName)
+        if not temp:
+            raise Exception(f"Invalid Text-to-Speech engine name: {engineName}")
+        
+        self.engine = engineName
+        return True
+
+    def setLanguage(self, lang, langCode):
+        ...
+
+    
+class isTTS():
+    def textToSpeech(self, text):
+        return
+    
+    def getSupportedLanguages(self):
+        return
+
+class GttsModule(isTTS):
     # Format:
     #   Name: (language_code, top_level_domain)
     #   language_code is language
@@ -34,7 +66,7 @@ class GttsTextToSpeechModule:
         self.accent = "Default"
 
     def setAccent(self, accent):
-        if accent in GttsTextToSpeechModule.accents.keys():
+        if accent in GttsModule.accents.keys():
             self.accent = accent
 
     def textToSpeech(self, text):
@@ -53,3 +85,29 @@ class GttsTextToSpeechModule:
         os.remove(abs_filepath)
 
 
+class Pyttsx3Module(isTTS):
+    class Threader(Thread):
+        def __init__(self, *args, **kwargs):
+            Thread.__init__(self, *args, **kwargs)
+            self.daemon = True
+            self.start()
+
+        def run(self):
+            tts_engine = pyttsx3.init()
+            tts_engine.say(self._args)
+            tts_engine.runAndWait()
+
+    def __init__(self, **kwargs):
+        ...
+
+    def textToSpeech(self, text):
+        return Pyttsx3Module.Threader(args=text)
+
+
+# REMOVE IF PYTTSX3 IS WORKING
+class OsModule(isTTS):
+    def __init__(self, **kwargs):
+        ...
+
+    def textToSpeech(self, text):
+        os.system("say " + text)
