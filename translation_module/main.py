@@ -3,8 +3,9 @@ from deep_translator import GoogleTranslator, MyMemoryTranslator
 
 class TranslationModule:
 
-    # Language title Mappings from MyMemory to Google
+    # Language title Mappings from MyMemory --> Google
     #   Used in situations such as using gTTS for Text-to-speech while using MyMemory for translation
+    #   This is because MyMemory and Google uses different language/code names
     mymemory_to_google_mapping = {
         'central aymara': 'aymara',
         'nyanja': 'chichewa',
