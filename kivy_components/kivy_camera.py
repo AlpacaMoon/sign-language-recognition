@@ -1,11 +1,17 @@
 import numpy as np
 import cv2
+from collections import deque
+from time import time
 
 from kivy.uix.image import Image
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 
 from action_feature_extraction import FeatureExtractionModule
+from action_recognition import ActionRecognitionModule
+
+MAX_DETECTION_LENGTH = 20
+MAX_PREDICTION_LENGTH = 20
 
 
 class KivyCamera(Image):
@@ -24,6 +30,14 @@ class KivyCamera(Image):
         self.previousRawFrame = np.zeros(1)
 
         self.featureExtractionModule = FeatureExtractionModule()
+        self.actionRecognitionModule = ActionRecognitionModule()
+
+        # Prediction Variables
+        self.detectionHistory = deque(maxlen=MAX_DETECTION_LENGTH)
+        self.predictionHistory = deque(maxlen=MAX_PREDICTION_LENGTH)
+        self.lastPredictionTime = time()
+        self.predictionCooldown = 1.0
+        self.detectionThreshold = 1.0
 
     def start(self):
         if not self.playing:
@@ -63,14 +77,20 @@ class KivyCamera(Image):
                     flippedFrame
                 )
 
-                # Predict word
-                if self.settings["prediction_mode"] == "Local":
-                    # Run model.predict(...)
-                    ...
-                else:
-                    # Send result to remote server
-                    predictionResults = "Apple"
-                    ...
+                # Save history
+                self.detectionHistory.append(detectionResults)
+                if len(self.detectionHistory) == self.detectionHistory.maxlen:
+                    # Predict word
+                    if self.settings["prediction_mode"] == "Local":
+                        # Run model.predict(...)
+                        predIndex, predLabel = self.actionRecognitionModule.predict(
+                            np.array(self.detectionHistory)
+                        )
+                        self.predictionHistory.append(predLabel)
+                    else:
+                        # Send result to remote server
+                        predictionResults = "Apple"
+                        ...
 
             else:
                 # Static sign prediction
@@ -88,36 +108,39 @@ class KivyCamera(Image):
             # Output
             self.settings["raw_output"].append("Hello")
 
-            if len(self.settings["raw_output"]) > self.settings['max_output_len']:
-                del self.settings['raw_output'][0]
-            
+            if len(self.settings["raw_output"]) > self.settings["max_output_len"]:
+                del self.settings["raw_output"][0]
+
             self.settings["update_label_func"](
                 self.settings["raw_output"], "raw_output_box"
             )
 
             # Sentence Transformation
-            if self.settings['sentence_assembler']:
+            if self.settings["sentence_assembler"]:
                 # ...
 
                 self.settings["transformed_output"].append("Heyhey")
 
-                if len(self.settings["transformed_output"]) > self.settings['max_output_len']:
-                    del self.settings['transformed_output'][0]
+                if (
+                    len(self.settings["transformed_output"])
+                    > self.settings["max_output_len"]
+                ):
+                    del self.settings["transformed_output"][0]
 
                 self.settings["update_label_func"](
                     self.settings["transformed_output"], "transformed_output_box"
                 )
 
             # Text to speech
-            if self.settings['text_to_speech']:
+            if self.settings["text_to_speech"]:
                 ...
 
             # Show FPS
-            if self.settings['show_fps']:
+            if self.settings["show_fps"]:
                 ...
 
             # Translate
-            if self.settings['translate']:
+            if self.settings["translate"]:
                 ...
 
             # Flip vertically because of how image texture is displayed
