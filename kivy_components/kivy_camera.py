@@ -65,16 +65,13 @@ class KivyCamera(Image):
             self.previousRawFrame = rawFrame
 
             # Flip so that the user see's mirror image
-            flippedFrame = cv2.flip(rawFrame, 1)
+            frame = cv2.flip(rawFrame, 1)
 
             # Extract Features
-            frame = None
-            detectionResults = None
-            predictionResults = None
             if self.settings["detection_mode"] == "Dynamic":
                 # Dynamic sign prediction
                 detectionResults, frame = self.featureExtractionModule.extractFeatures(
-                    flippedFrame
+                    frame
                 )
 
                 # Save history
@@ -106,7 +103,8 @@ class KivyCamera(Image):
                     ...
 
             # Output
-            self.settings["raw_output"].append("Hello")
+            # self.settings["raw_output"].append("Hello")
+            self.settings['raw_output'] = list(self.predictionHistory)
 
             if len(self.settings["raw_output"]) > self.settings["max_output_len"]:
                 del self.settings["raw_output"][0]
