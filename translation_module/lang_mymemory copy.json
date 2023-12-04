@@ -1,3 +1,4 @@
+{
     "acehnese": "ace-ID",
     "afrikaans": "af-ZA",
     "akan": "ak-GH",
@@ -319,4 +320,5 @@
     "xhosa": "xh-ZA",
     "yiddish": "yi-YD",
     "yoruba": "yo-NG",
-    "zulu": "zu-ZA",
+    "zulu": "zu-ZA"
+}

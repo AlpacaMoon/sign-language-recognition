@@ -1,5 +1,5 @@
 from deep_translator import GoogleTranslator, MyMemoryTranslator
-
+import json
 
 class TranslationModule:
 
@@ -35,6 +35,9 @@ class TranslationModule:
         'uyghur ug': 'uyghur'
     }
 
+    mymemory_to_google_mapping_code = {
+    }
+
 
     def __init__(
         self, source="english", target="english", translator="Google", **kwargs
@@ -45,11 +48,18 @@ class TranslationModule:
         # Either "Google" or "MyMemory"
         self.translator = translator
 
+        self.lang = {}
+        with open("lang_google.json", 'r') as f:
+            self.lang['Google'] = json.load(f)
+
+        with open("lang_mymemory.json", 'r') as f:
+            self.lang['MyMemory'] = json.load(f)
+
     def setTranslator(self, translator):
         self.translator = translator
 
     def getSupportedLanguages(self):
-        return self.translator.get_supported_languages(as_dict=True)
+        return self.lang[self.translator]
 
     def setSource(self, sourceCode):
         if sourceCode not in self.getSupportedLanguages().keys():
@@ -73,7 +83,7 @@ class TranslationModule:
         else:
             raise Exception("Invalid Translation Type!")
 
-    def mapLanguageToGoogle(self, lang):
+    def mymemoryToGoogle(self, lang):
         if lang in GoogleTranslator().get_supported_languages().keys():
             return lang
         

@@ -1,4 +1,3 @@
-
 from gtts import gTTS
 from playsound import playsound
 import pyttsx3
@@ -9,32 +8,36 @@ class TextToSpeechModule:
     def __init__(self, engine="gTTS", **kwargs):
         self.engine = engine
         self.engineMappings = {
-            'gTTS': GttsModule(),
-            'Pyttsx3': Pyttsx3Module(),
-            'OS': OsModule(),
+            "gTTS": GttsModule(),
+            "Pyttsx3": Pyttsx3Module(),
         }
+        self.lang = "en"
+
+    def setLang(self, lang):
+        self.lang = lang
 
     def textToSpeech(self, text):
         return self.engineMappings[self.engine].textToSpeech(text)
-    
+
     def switchEngine(self, engineName):
         temp = self.engineMappings.get(engineName)
         if not temp:
             raise Exception(f"Invalid Text-to-Speech engine name: {engineName}")
-        
+
         self.engine = engineName
         return True
 
     def setLanguage(self, lang, langCode):
         ...
 
-    
-class isTTS():
+
+class isTTS:
     def textToSpeech(self, text):
         return
-    
+
     def getSupportedLanguages(self):
         return
+
 
 class GttsModule(isTTS):
     # Format:
@@ -102,12 +105,3 @@ class Pyttsx3Module(isTTS):
 
     def textToSpeech(self, text):
         return Pyttsx3Module.Threader(args=text)
-
-
-# REMOVE IF PYTTSX3 IS WORKING
-class OsModule(isTTS):
-    def __init__(self, **kwargs):
-        ...
-
-    def textToSpeech(self, text):
-        os.system("say " + text)
