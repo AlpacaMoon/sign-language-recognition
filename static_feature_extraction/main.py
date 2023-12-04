@@ -12,20 +12,20 @@ class StaticFeatureExtractionModule():
     def detectHands(self, handDetector, frame, frameSize, draw):
         results = None
         # Hand Detection
-        if draw:
-            results, frame = handDetector.findHands(frame, draw=draw, flipType=False)
+        if (draw):
+            results, frame = handDetector.findHands(frame, draw=draw)
         else:
-            results = handDetector.findHands(frame, draw=draw, flipType=False)
+            results = handDetector.findHands(frame, draw=draw)
 
         if not results:
-            results = [generate_empty_hand("Left"), generate_empty_hand("Right")]
+            results = [generate_empty_hand('Left'), generate_empty_hand('Right')]
         elif len(results) == 1:
-            if results[0]["type"] == "Left":
+            if (results[0]['type'] == 'Left'):
                 results[0] = preprocess_body_part(results[0], frameSize)
-                results.append(generate_empty_hand("Right"))
+                results.append(generate_empty_hand('Right'))
             else:
                 results[0] = preprocess_body_part(results[0], frameSize)
-                results.insert(0, generate_empty_hand("Left"))
+                results.insert(0, generate_empty_hand('Left'))                         
         else:
             results[0] = preprocess_body_part(results[0], frameSize)
             results[1] = preprocess_body_part(results[1], frameSize)

@@ -174,7 +174,7 @@ class MainApp(MDApp):
         self.settings["show_fps"] = False
 
         #   Sentence Assembler
-        self.settings["sentence_assembler"] = True
+        self.settings["sentence_assembler"] = False
 
         #   Others
         self.settings["raw_output"] = []

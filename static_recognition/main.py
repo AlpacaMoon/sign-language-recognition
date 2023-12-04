@@ -24,9 +24,11 @@ class StaticRecognitionModule():
     def predict(self, inputValue):
         predResult = self.model.predict(
             np.expand_dims(inputValue, axis=0), verbose=0, workers=4, use_multiprocessing=True
-        )
+        )[0]
+        # print(predResult)
         predIndex = np.argmax(predResult)
         predLabel = self.static_labels[predIndex]
-        predAccuracy = predResult[np.argmax(predResult)]
+        predAccuracy = predResult[predIndex]
+        print(predLabel + " " + str(predAccuracy))
         return predIndex, predLabel, predAccuracy
         

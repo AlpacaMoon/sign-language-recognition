@@ -13,6 +13,7 @@ from static_feature_extraction import StaticFeatureExtractionModule
 from static_recognition import StaticRecognitionModule
 from word_segmentation import WordSegmentationModule
 from sentence_generator import SentenceGeneratorModule
+import word_segmentation
 
 MAX_DETECTION_LENGTH = 20
 MAX_PREDICTION_LENGTH = 20
@@ -58,6 +59,8 @@ class KivyCamera(Image):
         
         # Sentence Generator
         self.sentenceGenerator = SentenceGeneratorModule()
+        self.lastSentenceGeneration = time()
+        self.sentenceGenerationCooldown = 5.0
 
     def start(self):
         if not self.playing:
@@ -89,10 +92,10 @@ class KivyCamera(Image):
 
             # Extract Features
             if self.settings["detection_mode"] == "Dynamic":
-                if self.staticPredictionHistory:
-                    # When mode change segment the static character? 
-                    self.settings["raw_output"].append(self.wordSegmentor.split(self.staticPredictionHistory))
-                    self.staticPredictionHistory.clear()
+                # if self.staticPredictionHistory:
+                #     # When mode change segment the static character? 
+                #     self.settings["raw_output"].append(self.wordSegmentor.split(self.staticPredictionHistory))
+                #     self.staticPredictionHistory.clear()
                 
                 # Dynamic sign prediction
                 detectionResults, frame = self.featureExtractionModule.extractFeatures(
@@ -117,12 +120,14 @@ class KivyCamera(Image):
             else:
                 # Static sign prediction
                 # Hand Detection
-                detectionResults, frame = self.staticFeatureExtractionModule.extractFeatures(frame)
-
+                staticDetectionResults, frame = self.staticFeatureExtractionModule.extractFeatures(rawFrame)
+                staticDetectionResults = staticDetectionResults.astype(np.float32)
+                
                 if time() <= self.staticLastDetectTime + self.staticPredictionCooldown:
                     pass
                 else:
-                    predIndex, predLabel, predAccuracy = self.staticRecognitionModule.predict(detectionResults)          
+                    predIndex, predLabel, predAccuracy = self.staticRecognitionModule.predict(staticDetectionResults)          
+                    self.staticLastDetectTime = time()                    
                     
                     if predAccuracy >= self.staticDetectionThreshold:            
                         # If predictionHistory is not empty
@@ -133,12 +138,13 @@ class KivyCamera(Image):
                             pass
                         else:
                             self.staticPredictionHistory.append(predLabel)
+                            self.settings['raw_output'] = list(self.staticPredictionHistory)
                             # Reset the timestamp when a new character is detected
                             self.staticLastAppendTime = time()              
 
             # Output
             # self.settings["raw_output"].append("Hello")
-            self.settings['raw_output'] = list(self.predictionHistory)
+            # self.settings['raw_output'] = list(self.predictionHistory)
 
             if len(self.settings["raw_output"]) > self.settings["max_output_len"]:
                 del self.settings["raw_output"][0]
@@ -150,7 +156,14 @@ class KivyCamera(Image):
             # Sentence Transformation
             if self.settings["sentence_assembler"]:
                 # Sentence Generator
-                self.settings["transformed_output"].append(self.sentenceGenerator.generate(", ".join(self.settings["raw_output"])))
+                # print(", ".join(self.settings["raw_output"]))
+                # print(self.wordSegmentor.split("".join(self.settings["raw_output"])).to_string())
+                
+                if time() <= self.lastSentenceGeneration + self.sentenceGenerationCooldown:
+                    pass
+                else:
+                    self.settings["transformed_output"].append(self.sentenceGenerator.generate(self.wordSegmentor.split("".join(self.settings["raw_output"])).to_string()))
+                    self.lastSentenceGeneration = time()
 
                 if (
                     len(self.settings["transformed_output"])
