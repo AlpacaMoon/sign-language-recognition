@@ -9,13 +9,13 @@ STATIC_LABELS_PATH = "static_labels.csv"
 
 class StaticRecognitionModule():
     def __init__(self, **kwargs):
-        self.model_path = os.path.join(MODEL_PATH, MODEL_NAME)
+        self.model_path = os.path.join(os.path.dirname(__file__), MODEL_PATH, MODEL_NAME)
 
         self.model = keras.models.load_model(self.model_path)
 
         self.static_labels = []
 
-        with open(STATIC_LABELS_PATH, 'r') as f:
+        with open(os.path.join(os.path.dirname(__file__), STATIC_LABELS_PATH), 'r') as f:
             csv_reader = csv.reader(f)
             for row in csv_reader:
                 self.static_labels.append(row[1])

@@ -2,7 +2,7 @@ import numpy as np
 from cvzone.HandTrackingModule import HandDetector
 from concurrent.futures import ThreadPoolExecutor
 
-from cvzone_preprocess import *
+from .cvzone_preprocess import *
 
 class StaticFeatureExtractionModule():
     def __init__(self, **kwargs):
