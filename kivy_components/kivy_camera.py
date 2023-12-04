@@ -9,6 +9,10 @@ from kivy.graphics.texture import Texture
 
 from action_feature_extraction import FeatureExtractionModule
 from action_recognition import ActionRecognitionModule
+from static_feature_extraction import StaticFeatureExtractionModule
+from static_recognition import StaticRecognitionModule
+from word_segmentation import WordSegmentationModule
+from sentence_generator import SentenceGeneratorModule
 
 MAX_DETECTION_LENGTH = 20
 MAX_PREDICTION_LENGTH = 20
@@ -31,13 +35,29 @@ class KivyCamera(Image):
 
         self.featureExtractionModule = FeatureExtractionModule()
         self.actionRecognitionModule = ActionRecognitionModule()
+        self.staticFeatureExtractionModule = StaticFeatureExtractionModule()
+        self.staticRecognitionModule = StaticRecognitionModule()
 
-        # Prediction Variables
+        # Dynamic Prediction Variables
         self.detectionHistory = deque(maxlen=MAX_DETECTION_LENGTH)
         self.predictionHistory = deque(maxlen=MAX_PREDICTION_LENGTH)
         self.lastPredictionTime = time()
         self.predictionCooldown = 1.0
         self.detectionThreshold = 1.0
+        
+        # Static Prediction Variable
+        self.staticPredictionHistory = deque(maxlen=MAX_DETECTION_LENGTH)
+        self.staticDetectionThreshold = 0.999    
+        self.staticPredictionCooldown = 0.5
+        self.staticAppendCooldown = 1.0
+        self.staticLastAppendTime = time() + self.staticAppendCooldown
+        self.staticLastDetectTime = time() + self.predictionCooldown
+        
+        # Word Segmentation
+        self.wordSegmentor = WordSegmentationModule()
+        
+        # Sentence Generator
+        self.sentenceGenerator = SentenceGeneratorModule()
 
     def start(self):
         if not self.playing:
@@ -69,6 +89,10 @@ class KivyCamera(Image):
 
             # Extract Features
             if self.settings["detection_mode"] == "Dynamic":
+                # When mode change segment the static character? 
+                self.settings["raw_output"].append(self.wordSegmentor.split(self.staticPredictionHistory))
+                self.staticPredictionHistory.clear()
+                
                 # Dynamic sign prediction
                 detectionResults, frame = self.featureExtractionModule.extractFeatures(
                     frame
@@ -91,16 +115,25 @@ class KivyCamera(Image):
 
             else:
                 # Static sign prediction
-                ...
+                # Hand Detection
+                detectionResults, frame = self.staticFeatureExtractionModule.extractFeatures(flippedFrame)
 
-                # Predict word
-                if self.settings["prediction_mode"] == "Local":
-                    # Run model.predict(...)
-                    ...
+                if time() <= self.staticLastDetectTime + self.staticPredictionCooldown:
+                    pass
                 else:
-                    # Send result to remote server
-                    predictionResults = "Banana"
-                    ...
+                    predIndex, predLabel, predAccuracy = self.staticRecognitionModule.predict(detectionResults)          
+                    
+                    if predAccuracy >= self.staticDetectionThreshold:            
+                        # If predictionHistory is not empty
+                        # If predlabel is the same as the last appended label
+                        # Check if appendCooldown have passed since the last append
+                        if self.staticPredictionHistory and predLabel == self.staticPredictionHistory[-1] and time() <= self.staticLastAppendTime + self.staticAppendCooldown:
+                            # Do nothing, don't append
+                            pass
+                        else:
+                            self.staticPredictionHistory.append(predLabel)
+                            # Reset the timestamp when a new character is detected
+                            self.staticLastAppendTime = time()              
 
             # Output
             # self.settings["raw_output"].append("Hello")
@@ -115,9 +148,8 @@ class KivyCamera(Image):
 
             # Sentence Transformation
             if self.settings["sentence_assembler"]:
-                # ...
-
-                self.settings["transformed_output"].append("Heyhey")
+                # Sentence Generator
+                self.settings["transformed_output"].append(self.sentenceGenerator.generate(", ".join(self.settings["raw_output"])))
 
                 if (
                     len(self.settings["transformed_output"])

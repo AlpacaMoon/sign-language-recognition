@@ -1,1 +1,1 @@
-from .main import SentenceGenerator
+from .main import SentenceGeneratorModule

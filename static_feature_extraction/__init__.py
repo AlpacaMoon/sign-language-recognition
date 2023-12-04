@@ -1,1 +1,1 @@
-from .main import FeatureExtractionModule
+from .main import StaticFeatureExtractionModule
