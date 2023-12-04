@@ -92,11 +92,6 @@ class KivyCamera(Image):
 
             # Extract Features
             if self.settings["detection_mode"] == "Dynamic":
-                # if self.staticPredictionHistory:
-                #     # When mode change segment the static character? 
-                #     self.settings["raw_output"].append(self.wordSegmentor.split(self.staticPredictionHistory))
-                #     self.staticPredictionHistory.clear()
-                
                 # Dynamic sign prediction
                 detectionResults, frame = self.featureExtractionModule.extractFeatures(
                     frame
