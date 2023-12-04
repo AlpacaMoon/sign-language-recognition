@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from cvzone_preprocess import *
 
-class FeatureExtractionModule():
+class StaticFeatureExtractionModule():
     def __init__(self, **kwargs):
         # Detectors
         self.handDetector = HandDetector(detectionCon=0.5, maxHands=2)
