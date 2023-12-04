@@ -11,6 +11,8 @@ from action_feature_extraction import FeatureExtractionModule
 from action_recognition import ActionRecognitionModule
 from static_feature_extraction import StaticFeatureExtractionModule
 from static_recognition import StaticRecognitionModule
+from word_segmentation import WordSegmentationModule
+from sentence_generator import SentenceGeneratorModule
 
 MAX_DETECTION_LENGTH = 20
 MAX_PREDICTION_LENGTH = 20
@@ -48,10 +50,14 @@ class KivyCamera(Image):
         self.staticDetectionThreshold = 0.999    
         self.staticPredictionCooldown = 0.5
         self.staticAppendCooldown = 1.0
-        
-        # the first time append should eliminate predictionCooldown
         self.staticLastAppendTime = time() + self.staticAppendCooldown
         self.staticLastDetectTime = time() + self.predictionCooldown
+        
+        # Word Segmentation
+        self.wordSegmentor = WordSegmentationModule()
+        
+        # Sentence Generator
+        self.sentenceGenerator = SentenceGeneratorModule()
 
     def start(self):
         if not self.playing:
@@ -86,6 +92,10 @@ class KivyCamera(Image):
             detectionResults = None
             predictionResults = None
             if self.settings["detection_mode"] == "Dynamic":
+                # When mode change segment the static character? 
+                self.settings["raw_output"].append(self.wordSegmentor.split(self.staticPredictionHistory))
+                self.staticPredictionHistory.clear()
+                
                 # Dynamic sign prediction
                 detectionResults, frame = self.featureExtractionModule.extractFeatures(
                     flippedFrame
@@ -109,13 +119,12 @@ class KivyCamera(Image):
             else:
                 # Static sign prediction
                 # Hand Detection
-                detectionResults, frame = StaticFeatureExtractionModule.extractFeatures(flippedFrame)
+                detectionResults, frame = self.staticFeatureExtractionModule.extractFeatures(flippedFrame)
 
                 if time() <= self.staticLastDetectTime + self.staticPredictionCooldown:
                     pass
                 else:
-                    # Dun want create instance and reuse instance?
-                    predIndex, predLabel, predAccuracy = StaticRecognitionModule.predict(detectionResults)          
+                    predIndex, predLabel, predAccuracy = self.staticRecognitionModule.predict(detectionResults)          
                     
                     if predAccuracy >= self.staticDetectionThreshold:            
                         # If predictionHistory is not empty
@@ -127,16 +136,7 @@ class KivyCamera(Image):
                         else:
                             self.staticPredictionHistory.append(predLabel)
                             # Reset the timestamp when a new character is detected
-                            self.staticLastAppendTime = time()
-
-                # Predict word
-                if self.settings["prediction_mode"] == "Local":
-                    # Run model.predict(...)
-                    ...
-                else:
-                    # Send result to remote server
-                    predictionResults = "Banana"
-                    ...
+                            self.staticLastAppendTime = time()              
 
             # Output
             self.settings["raw_output"].append("Hello")
@@ -150,9 +150,8 @@ class KivyCamera(Image):
 
             # Sentence Transformation
             if self.settings["sentence_assembler"]:
-                # ...
-
-                self.settings["transformed_output"].append("Heyhey")
+                # Sentence Generator
+                self.settings["transformed_output"].append(self.sentenceGenerator.generate(", ".join(self.settings["raw_output"])))
 
                 if (
                     len(self.settings["transformed_output"])

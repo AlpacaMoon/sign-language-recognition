@@ -1,7 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import time
 
-class SentenceGenerator:
+class SentenceGeneratorModule:
     hugginFaceModelId = "EngLip/flan-t5-sentence-generator"
     localModelPath = "./sentence_generator/model"
     # tokenizer = AutoTokenizer
