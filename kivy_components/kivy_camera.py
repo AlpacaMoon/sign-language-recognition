@@ -89,9 +89,10 @@ class KivyCamera(Image):
 
             # Extract Features
             if self.settings["detection_mode"] == "Dynamic":
-                # When mode change segment the static character? 
-                self.settings["raw_output"].append(self.wordSegmentor.split(self.staticPredictionHistory))
-                self.staticPredictionHistory.clear()
+                if self.staticPredictionHistory:
+                    # When mode change segment the static character? 
+                    self.settings["raw_output"].append(self.wordSegmentor.split(self.staticPredictionHistory))
+                    self.staticPredictionHistory.clear()
                 
                 # Dynamic sign prediction
                 detectionResults, frame = self.featureExtractionModule.extractFeatures(
@@ -116,7 +117,7 @@ class KivyCamera(Image):
             else:
                 # Static sign prediction
                 # Hand Detection
-                detectionResults, frame = self.staticFeatureExtractionModule.extractFeatures(flippedFrame)
+                detectionResults, frame = self.staticFeatureExtractionModule.extractFeatures(frame)
 
                 if time() <= self.staticLastDetectTime + self.staticPredictionCooldown:
                     pass

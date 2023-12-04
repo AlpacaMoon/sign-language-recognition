@@ -11,7 +11,6 @@ from kivy.properties import StringProperty, BooleanProperty
 from kivy.core.window import Window
 from kivy.metrics import dp
 
-
 from kivymd.app import MDApp
 from kivymd.uix.segmentedcontrol import MDSegmentedControl, MDSegmentedControlItem
 from kivymd.uix.boxlayout import MDBoxLayout

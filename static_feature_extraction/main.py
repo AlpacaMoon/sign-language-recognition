@@ -36,24 +36,17 @@ class StaticFeatureExtractionModule():
     # convert them into normalized landmark/keypoint coordinates in a 1D-array,
     # and also returns the frame with the landmark connections drawn onto it
     def parallelFeatureExtraction(
-        self, handDetector, faceDetector, poseDetector, frame, draw=True
+        self, handDetector, frame, draw=True
     ):
         frameSize = (frame.shape[1], frame.shape[0])
         with ThreadPoolExecutor() as executor:
             t1 = executor.submit(self.detectHands, handDetector, frame, frameSize, draw)
-            t2 = executor.submit(self.detectPose, poseDetector, frame, draw)
-            t3 = executor.submit(self.detectFace, faceDetector, frame, frameSize, draw)
 
             # Convert results into 1D-array
             detectionResults = flatten2dList(
                 [
                     flattenDetectionResult(t1.result()[0]),
                     flattenDetectionResult(t1.result()[1]),
-                    t2.result(),
-                    t3.result()["bbox"],
-                    t3.result()["center"],
-                    t3.result()["center"] - t1.result()[0]["center"],
-                    t3.result()["center"] - t1.result()[1]["center"],
                 ],
                 dataType=float,
             )
@@ -64,7 +57,7 @@ class StaticFeatureExtractionModule():
     def extractFeatures(self, frame):
 
         detectionResults, frame = self.parallelFeatureExtraction(
-            self.handDetector, self.faceDetector, self.poseDetector, frame
+            self.handDetector, frame
         )
 
         return detectionResults, frame
