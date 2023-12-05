@@ -59,6 +59,7 @@ class KivyCamera(Image):
         
         # Sentence Generator
         self.sentenceGenerator = SentenceGeneratorModule()
+        self.last_raw_output = ""
         self.lastSentenceGeneration = time()
         self.sentenceGenerationCooldown = 5.0
 
@@ -154,11 +155,32 @@ class KivyCamera(Image):
                 # print(", ".join(self.settings["raw_output"]))
                 # print(self.wordSegmentor.split("".join(self.settings["raw_output"])).to_string())
                 
+                # if time() <= self.lastSentenceGeneration + self.sentenceGenerationCooldown:
+                #     pass
+                # else:
+                #     segmentedWord = self.wordSegmentor.split("".join(self.settings["raw_output"])).to_string()
+                #     generatedSentence = self.sentenceGenerator.generate(segmentedWord.lower())
+                #     self.settings["transformed_output"].append(generatedSentence)
+                #     self.lastSentenceGeneration = time()
+                    
                 if time() <= self.lastSentenceGeneration + self.sentenceGenerationCooldown:
                     pass
                 else:
-                    self.settings["transformed_output"].append(self.sentenceGenerator.generate(self.wordSegmentor.split("".join(self.settings["raw_output"])).to_string()))
-                    self.lastSentenceGeneration = time()
+                    # Combine the elements of raw_output into a single string
+                    current_raw_output = "".join(self.settings["raw_output"])
+
+                    # Check if the content has changed since the last generation
+                    if current_raw_output == self.last_raw_output:
+                        self.lastSentenceGeneration = time()
+                    else:
+                       # Content has changed, proceed with sentence generation
+                        segmentedWord = self.wordSegmentor.split(current_raw_output).to_string()
+                        generatedSentence = self.sentenceGenerator.generate(segmentedWord.lower())
+                        self.settings["transformed_output"] = generatedSentence
+
+                        # Update last_raw_output to the current content
+                        self.last_raw_output = current_raw_output
+                        self.lastSentenceGeneration = time()
 
                 if (
                     len(self.settings["transformed_output"])

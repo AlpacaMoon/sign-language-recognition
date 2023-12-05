@@ -29,6 +29,5 @@ class StaticRecognitionModule():
         predIndex = np.argmax(predResult)
         predLabel = self.static_labels[predIndex]
         predAccuracy = predResult[predIndex]
-        print(predLabel + " " + str(predAccuracy))
         return predIndex, predLabel, predAccuracy
         
