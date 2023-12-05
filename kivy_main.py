@@ -11,7 +11,6 @@ from kivy.properties import StringProperty, BooleanProperty
 from kivy.core.window import Window
 from kivy.metrics import dp
 
-
 from kivymd.app import MDApp
 from kivymd.uix.segmentedcontrol import MDSegmentedControl, MDSegmentedControlItem
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -196,7 +195,7 @@ class MainApp(MDApp):
         self.settings["show_fps"] = False
 
         #   Sentence Assembler
-        self.settings["sentence_assembler"] = True
+        self.settings["sentence_assembler"] = False
 
         #   Others
         self.settings["raw_output"] = []

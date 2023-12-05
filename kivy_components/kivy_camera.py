@@ -59,6 +59,9 @@ class KivyCamera(Image):
 
         # Sentence Generator
         self.sentenceGenerator = SentenceGeneratorModule()
+        self.last_raw_output = ""
+        self.lastSentenceGeneration = time()
+        self.sentenceGenerationCooldown = 5.0
 
         # Text to Speech
         self.ttsModule = TextToSpeechModule()
@@ -94,12 +97,6 @@ class KivyCamera(Image):
 
             # Dynamic Sign Prediction
             if self.settings["detection_mode"] == "Dynamic":
-                # When mode change segment the static character?
-                self.settings["raw_output"].append(
-                    self.wordSegmentor.split(self.staticPredictionHistory)
-                )
-                self.staticPredictionHistory.clear()
-
                 # Dynamic sign prediction
                 detectionResults, frame = self.featureExtractionModule.extractFeatures(
                     frame
@@ -129,21 +126,16 @@ class KivyCamera(Image):
             else:
                 # Static sign prediction
                 # Hand Detection
-                (
-                    detectionResults,
-                    frame,
-                ) = self.staticFeatureExtractionModule.extractFeatures(frame)
-
+                staticDetectionResults, frame = self.staticFeatureExtractionModule.extractFeatures(rawFrame)
+                staticDetectionResults = staticDetectionResults.astype(np.float32)
+                
                 if time() <= self.staticLastDetectTime + self.staticPredictionCooldown:
                     pass
                 else:
-                    (
-                        predIndex,
-                        predLabel,
-                        predAccuracy,
-                    ) = self.staticRecognitionModule.predict(detectionResults)
-
-                    if predAccuracy >= self.staticDetectionThreshold:
+                    predIndex, predLabel, predAccuracy = self.staticRecognitionModule.predict(staticDetectionResults)          
+                    self.staticLastDetectTime = time()                    
+                    
+                    if predAccuracy >= self.staticDetectionThreshold:            
                         # If predictionHistory is not empty
                         # If predlabel is the same as the last appended label
                         # Check if appendCooldown have passed since the last append
@@ -157,11 +149,13 @@ class KivyCamera(Image):
                             pass
                         else:
                             self.staticPredictionHistory.append(predLabel)
+                            self.settings['raw_output'] = list(self.staticPredictionHistory)
                             # Reset the timestamp when a new character is detected
                             self.staticLastAppendTime = time()
 
-                # Output
-                self.settings["raw_output"] = list(self.staticPredictionHistory)
+            # Output
+            # self.settings["raw_output"].append("Hello")
+            # self.settings['raw_output'] = list(self.predictionHistory)
 
             # Update Kivy Label
             self.settings["update_label_func"](
@@ -171,11 +165,35 @@ class KivyCamera(Image):
             # Sentence Transformation
             if self.settings["sentence_assembler"]:
                 # Sentence Generator
-                self.settings["transformed_output"].append(
-                    self.sentenceGenerator.generate(
-                        ", ".join(self.settings["raw_output"])
-                    )
-                )
+                # print(", ".join(self.settings["raw_output"]))
+                # print(self.wordSegmentor.split("".join(self.settings["raw_output"])).to_string())
+                
+                # if time() <= self.lastSentenceGeneration + self.sentenceGenerationCooldown:
+                #     pass
+                # else:
+                #     segmentedWord = self.wordSegmentor.split("".join(self.settings["raw_output"])).to_string()
+                #     generatedSentence = self.sentenceGenerator.generate(segmentedWord.lower())
+                #     self.settings["transformed_output"].append(generatedSentence)
+                #     self.lastSentenceGeneration = time()
+                    
+                if time() <= self.lastSentenceGeneration + self.sentenceGenerationCooldown:
+                    pass
+                else:
+                    # Combine the elements of raw_output into a single string
+                    current_raw_output = "".join(self.settings["raw_output"])
+
+                    # Check if the content has changed since the last generation
+                    if current_raw_output == self.last_raw_output:
+                        self.lastSentenceGeneration = time()
+                    else:
+                       # Content has changed, proceed with sentence generation
+                        segmentedWord = self.wordSegmentor.split(current_raw_output).to_string()
+                        generatedSentence = self.sentenceGenerator.generate(segmentedWord.lower())
+                        self.settings["transformed_output"] = generatedSentence
+
+                        # Update last_raw_output to the current content
+                        self.last_raw_output = current_raw_output
+                        self.lastSentenceGeneration = time()
 
                 if (
                     len(self.settings["transformed_output"])
