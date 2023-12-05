@@ -3,6 +3,7 @@ import csv
 import os
 import numpy as np
 
+
 def readActionLabels():
     action_labels = []
     with open(STATIC_LABELS_PATH) as f:
@@ -10,12 +11,13 @@ def readActionLabels():
         action_labels = [each[1] for each in csv_reader]
     return action_labels
 
+
 def readActionMapping():
     action_mapping = {}
     with open(STATIC_LABELS_PATH) as f:
         csv_reader = csv.reader(f, delimiter=",")
         action_mapping = {each[1]: each[0] for each in csv_reader}
-        
+
     return action_mapping
 
 
