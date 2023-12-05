@@ -79,7 +79,7 @@ Screen:
                 ScrollView:
                     MDStackLayout:
                         id: settings_screen
-                        line_color: "green"
+                        line_color: "gray"
                         line_width: 1
                         radius: 15
                         padding: '8dp', '16dp', '8dp', '16dp'
@@ -114,12 +114,6 @@ Screen:
                             adaptive_height: True
                             padding: '20dp', '5dp', '20dp', '0dp'
                             id: detection_mode_box
-
-                        # Prediction Mode Swapping Switch
-                        MDBoxLayout:
-                            adaptive_height: True
-                            padding: '20dp', '5dp', '20dp', '0dp'
-                            id: prediction_mode_box
                         
                         # Sentence Assembler
                         ExpandableBox:
@@ -146,9 +140,8 @@ Screen:
                         #     id: translate_target
                         #     label: "Translate to:"
                         #     menu_name: "translate_menu"
-            
 
-        
+
 <DropdownSelect>
     adaptive_height: True
     orientation: "horizontal"
@@ -190,7 +183,7 @@ Screen:
 
         MDSegmentedControlItem:
             text: root.rightLabel
-            
+
 <ExpandableBox>
     line_color: app.theme_cls.bg_normal
     line_width: 0.5
@@ -213,7 +206,7 @@ Screen:
 
         MDLabel:
             text: " " + root.switchLabel
-    
+
     MDStackLayout: 
         adaptive_height: True
         is_expandable_box: True

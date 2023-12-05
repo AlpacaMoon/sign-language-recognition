@@ -33,4 +33,5 @@ class ActionRecognitionModule:
         )
         predIndex = np.argmax(predResult)
         predLabel = self.action_labels[predIndex]
-        return predIndex, predLabel
+        predAccuracy = predResult[predIndex]
+        return predLabel, predAccuracy

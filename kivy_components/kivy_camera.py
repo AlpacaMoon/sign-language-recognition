@@ -13,6 +13,7 @@ from static_feature_extraction import StaticFeatureExtractionModule
 from static_recognition import StaticRecognitionModule
 from word_segmentation import WordSegmentationModule
 from sentence_generator import SentenceGeneratorModule
+from text_to_speech import TextToSpeechModule
 
 MAX_DETECTION_LENGTH = 20
 MAX_PREDICTION_LENGTH = 20
@@ -39,25 +40,29 @@ class KivyCamera(Image):
         self.staticRecognitionModule = StaticRecognitionModule()
 
         # Dynamic Prediction Variables
-        self.detectionHistory = deque(maxlen=MAX_DETECTION_LENGTH)
-        self.predictionHistory = deque(maxlen=MAX_PREDICTION_LENGTH)
-        self.lastPredictionTime = time()
-        self.predictionCooldown = 1.0
-        self.detectionThreshold = 1.0
-        
+        self.dynamicDetectionHistory = deque(maxlen=MAX_DETECTION_LENGTH)
+        self.dynamicPredictionHistory = deque(maxlen=MAX_PREDICTION_LENGTH)
+        self.dynamicLastPredictionTime = time()
+        self.dynamicPredictionCooldown = 1.0
+        self.dynamicPredictionThreshold = 1.0
+
         # Static Prediction Variable
         self.staticPredictionHistory = deque(maxlen=MAX_DETECTION_LENGTH)
-        self.staticDetectionThreshold = 0.999    
+        self.staticDetectionThreshold = 0.999
         self.staticPredictionCooldown = 0.5
         self.staticAppendCooldown = 1.0
         self.staticLastAppendTime = time() + self.staticAppendCooldown
-        self.staticLastDetectTime = time() + self.predictionCooldown
-        
+        self.staticLastDetectTime = time() + self.staticPredictionCooldown
+
         # Word Segmentation
         self.wordSegmentor = WordSegmentationModule()
-        
+
         # Sentence Generator
         self.sentenceGenerator = SentenceGeneratorModule()
+
+        # Text to Speech
+        self.ttsModule = TextToSpeechModule()
+        self.tts_previouslySaid = []
 
     def start(self):
         if not self.playing:
@@ -87,61 +92,78 @@ class KivyCamera(Image):
             # Flip so that the user see's mirror image
             frame = cv2.flip(rawFrame, 1)
 
-            # Extract Features
+            # Dynamic Sign Prediction
             if self.settings["detection_mode"] == "Dynamic":
-                # When mode change segment the static character? 
-                self.settings["raw_output"].append(self.wordSegmentor.split(self.staticPredictionHistory))
+                # When mode change segment the static character?
+                self.settings["raw_output"].append(
+                    self.wordSegmentor.split(self.staticPredictionHistory)
+                )
                 self.staticPredictionHistory.clear()
-                
+
                 # Dynamic sign prediction
                 detectionResults, frame = self.featureExtractionModule.extractFeatures(
                     frame
                 )
 
                 # Save history
-                self.detectionHistory.append(detectionResults)
-                if len(self.detectionHistory) == self.detectionHistory.maxlen:
+                self.dynamicDetectionHistory.append(detectionResults)
+                if (
+                    len(self.dynamicDetectionHistory)
+                    == self.dynamicDetectionHistory.maxlen
+                    and time() - self.dynamicLastPredictionTime
+                    >= self.dynamicPredictionCooldown
+                ):
                     # Predict word
-                    if self.settings["prediction_mode"] == "Local":
-                        # Run model.predict(...)
-                        predIndex, predLabel = self.actionRecognitionModule.predict(
-                            np.array(self.detectionHistory)
-                        )
-                        self.predictionHistory.append(predLabel)
-                    else:
-                        # Send result to remote server
-                        predictionResults = "Apple"
-                        ...
+                    predLabel, predAccuracy = self.actionRecognitionModule.predict(
+                        np.array(self.dynamicDetectionHistory)
+                    )
+
+                    # Append if accuracy is above threshold
+                    if predAccuracy >= self.dynamicPredictionThreshold:
+                        self.dynamicPredictionHistory.append(predLabel)
+                        self.dynamicLastPredictionTime = time()
+
+                # Output
+                self.settings["raw_output"] = list(self.dynamicPredictionHistory)
 
             else:
                 # Static sign prediction
                 # Hand Detection
-                detectionResults, frame = self.staticFeatureExtractionModule.extractFeatures(flippedFrame)
+                (
+                    detectionResults,
+                    frame,
+                ) = self.staticFeatureExtractionModule.extractFeatures(frame)
 
                 if time() <= self.staticLastDetectTime + self.staticPredictionCooldown:
                     pass
                 else:
-                    predIndex, predLabel, predAccuracy = self.staticRecognitionModule.predict(detectionResults)          
-                    
-                    if predAccuracy >= self.staticDetectionThreshold:            
+                    (
+                        predIndex,
+                        predLabel,
+                        predAccuracy,
+                    ) = self.staticRecognitionModule.predict(detectionResults)
+
+                    if predAccuracy >= self.staticDetectionThreshold:
                         # If predictionHistory is not empty
                         # If predlabel is the same as the last appended label
                         # Check if appendCooldown have passed since the last append
-                        if self.staticPredictionHistory and predLabel == self.staticPredictionHistory[-1] and time() <= self.staticLastAppendTime + self.staticAppendCooldown:
+                        if (
+                            self.staticPredictionHistory
+                            and predLabel == self.staticPredictionHistory[-1]
+                            and time()
+                            <= self.staticLastAppendTime + self.staticAppendCooldown
+                        ):
                             # Do nothing, don't append
                             pass
                         else:
                             self.staticPredictionHistory.append(predLabel)
                             # Reset the timestamp when a new character is detected
-                            self.staticLastAppendTime = time()              
+                            self.staticLastAppendTime = time()
 
-            # Output
-            # self.settings["raw_output"].append("Hello")
-            self.settings['raw_output'] = list(self.predictionHistory)
+                # Output
+                self.settings["raw_output"] = list(self.staticPredictionHistory)
 
-            if len(self.settings["raw_output"]) > self.settings["max_output_len"]:
-                del self.settings["raw_output"][0]
-
+            # Update Kivy Label
             self.settings["update_label_func"](
                 self.settings["raw_output"], "raw_output_box"
             )
@@ -149,7 +171,11 @@ class KivyCamera(Image):
             # Sentence Transformation
             if self.settings["sentence_assembler"]:
                 # Sentence Generator
-                self.settings["transformed_output"].append(self.sentenceGenerator.generate(", ".join(self.settings["raw_output"])))
+                self.settings["transformed_output"].append(
+                    self.sentenceGenerator.generate(
+                        ", ".join(self.settings["raw_output"])
+                    )
+                )
 
                 if (
                     len(self.settings["transformed_output"])
@@ -161,17 +187,70 @@ class KivyCamera(Image):
                     self.settings["transformed_output"], "transformed_output_box"
                 )
 
-            # Text to speech
-            if self.settings["text_to_speech"]:
-                ...
-
-            # Show FPS
-            if self.settings["show_fps"]:
-                ...
-
             # Translate
             if self.settings["translate"]:
-                ...
+                translationTarget = ""
+                if self.settings["translate_engine"] == "Google":
+                    translationTarget = self.settings["translate_target_google"]
+                else:
+                    translationTarget = self.settings["translate_target_mymemory"]
+                self.settings["translate_instance"].setTarget(translationTarget)
+
+                if self.settings["detection_mode"] == "Dynamic":
+                    self.settings["raw_output"] = (
+                        self.settings["translate_instance"].translate(
+                            " ".join(self.settings["raw_output"])
+                        )
+                    ).split(" ")
+
+                self.settings["transformed_output"] = (
+                    self.settings["translate_instance"].translate(
+                        " ".join(self.settings["transformed_output"])
+                    )
+                ).split(" ")
+
+            # Text to speech
+            if self.settings["text_to_speech"]:
+                translationTarget = ""
+                if self.settings["translate_engine"] == "Google":
+                    translationTarget = self.settings["translate_target_google"]
+                else:
+                    translationTarget = self.settings[
+                        "translate_instance"
+                    ].mymemoryToGoogle(self.settings["translate_target_mymemory"])
+
+                self.settings["translate_instance"].setTarget(translationTarget)
+
+                if (
+                    self.ttsModule.engine == "Pyttsx3"
+                    and translationTarget
+                    in [
+                        "en",
+                        "en-GB",
+                        "en-AU",
+                        "en-CA",
+                        "en-IN",
+                        "en-IE",
+                        "en-NZ",
+                        "en-SG",
+                        "en-ZA",
+                        "en-US",
+                    ]
+                ) or self.ttsModule.engine == "gTTS":
+                    if self.ttsModule.engine == "gTTS":
+                        self.ttsModule.setLang(translationTarget)
+
+                    # Extract out the words that havent been said
+                    splitPos = 0
+                    for i, a in enumerate(self.settings["transformed_output"]):
+                        if a != self.tts_previouslySaid[i]:
+                            splitPos = i
+                            break
+
+                    self.ttsModule.textToSpeech(
+                        " ".join(self.settings["transformed_output"][splitPos:])
+                    )
+                    self.tts_previouslySaid = self.settings["transformed_output"].copy()
 
             # Flip vertically because of how image texture is displayed
             frame = cv2.flip(frame, 0)

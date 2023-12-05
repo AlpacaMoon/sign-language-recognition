@@ -1,41 +1,44 @@
 from deep_translator import GoogleTranslator, MyMemoryTranslator
 import json
+import os
+
 
 class TranslationModule:
-
-    # Language title Mappings from MyMemory --> Google
-    #   Used in situations such as using gTTS for Text-to-speech while using MyMemory for translation
-    #   This is because MyMemory and Google uses different language/code names
+    # These are the language code conversions from MyMemory to Google
+    # Other language codes are the same between MyMemory & Google (except those listed in 'only_in_google' below)
     mymemory_to_google_mapping = {
-        'central aymara': 'aymara',
-        'nyanja': 'chichewa',
-        'maldivian': 'dhivehi',
-        'chinese simplified': 'chinese (simplified)',
-        'chinese traditional': 'chinese (traditional)',
-        'haitian creole french': 'haitian creole',
-        'igbo ibo': 'igbo',
-        'igbo ig': 'igbo',
-        'irish gaelic': 'irish',
-        'northern kurdish': 'kurdish (kurmanji)',
-        'kurdish sorani': 'kurdish (sorani)',
-        'manipuri': 'meiteilon (manipuri)',
-        'norwegian bokmål': 'norwegian',
-        'norwegian nynorsk': 'norwegian',
-        'odia': 'odia (oriya)',
-        'oriya': 'odia (oriya)',
-        'west central oromo': 'oromo',
-        'sesotho': 'sepedi',
-        'serbian cyrillic': 'serbian',
-        'serbian latin': 'serbian',
-        'sindhi snd': 'sindhi',
-        'sindhi sd': 'sindhi',
-        'tamil india': 'tamil',
-        'tamil sri lanka': 'tamil',
-        'uyghur uig': 'uyghur',
-        'uyghur ug': 'uyghur'
+        "ayr-BO": "ay",
+        "ny-MW": "ny",
+        "dv-MV": "dv",
+        "ht-HT": "ht",
+        "ibo-NG": "ig",
+        "ig-NG": "ig",
+        "ga-IE": "ga",
+        "kmr-TR": "ku",
+        "ckb-IQ": "ckb",
+        "mni-IN": "mni-Mtei",
+        "nb-NO": "no",
+        "nn-NO": "no",
+        "or-IN": "or",
+        "ory-IN": "or",
+        "gaz-ET": "om",
+        "nso-ZA": "nso",
+        "sr-Cyrl-RS": "sr",
+        "sr-Latn-RS": "sr",
+        "snd-PK": "sd",
+        "sd-PK": "sd",
+        "ta-IN": "ta",
+        "ta-LK": "ta",
+        "uig-CN": "ug",
+        "ug-CN": "ug",
     }
 
-    mymemory_to_google_mapping_code = {
+    # These are the language codes that are supported by Google but not by MyMemory
+    only_in_google = {
+        "co": "corsican",
+        "doi": "dogri",
+        "fy": "frisian",
+        "kri": "krio",
     }
 
 
@@ -49,17 +52,24 @@ class TranslationModule:
         self.translator = translator
 
         self.lang = {}
-        with open("lang_google.json", 'r') as f:
-            self.lang['Google'] = json.load(f)
+        with open(os.path.join(os.path.dirname(__file__), "lang_google.json"), "r") as f:
+            self.lang["Google"] = json.load(f)
 
-        with open("lang_mymemory.json", 'r') as f:
-            self.lang['MyMemory'] = json.load(f)
+        with open(os.path.join(os.path.dirname(__file__), "lang_mymemory.json"), "r") as f:
+            self.lang["MyMemory"] = json.load(f)
 
     def setTranslator(self, translator):
+        if translator not in ("Google", "MyMemory"):
+            return False
+
         self.translator = translator
+        return True
 
     def getSupportedLanguages(self):
         return self.lang[self.translator]
+    
+    def getSupportedLanguagesByEngine(self, engineName):
+        return self.lang.get(engineName)    # Returns None if engineName not exist
 
     def setSource(self, sourceCode):
         if sourceCode not in self.getSupportedLanguages().keys():
@@ -83,12 +93,12 @@ class TranslationModule:
         else:
             raise Exception("Invalid Translation Type!")
 
-    def mymemoryToGoogle(self, lang):
-        if lang in GoogleTranslator().get_supported_languages().keys():
-            return lang
+    def mymemoryToGoogle(self, langCode):
+        if langCode in GoogleTranslator().get_supported_languages().keys():
+            return langCode
         
-        temp = TranslationModule.mymemory_to_google_mapping.get(lang)
-        if temp is not None:
-            return temp
-        
+        elif langCode in TranslationModule.mymemory_to_google_mapping.keys():
+            return TranslationModule.mymemory_to_google_mapping[langCode]
+
+        # Language cannot be converted to Google code
         return False

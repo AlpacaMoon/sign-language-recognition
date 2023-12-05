@@ -23,6 +23,7 @@ from kivymd.uix.dropdownitem import MDDropDownItem
 
 from kivy_components import KivyCamera, main_builder_string
 
+from translation_module import TranslationModule
 
 
 class SettingControl:
@@ -54,7 +55,7 @@ class DropdownSelect(MDBoxLayout, SettingControl):
 
     def __init__(self, **kwargs):
         super(MDBoxLayout, self).__init__(**kwargs)
-        
+
         for c in self.children:
             if type(c) == MDDropDownItem:
                 for c2 in c.children:
@@ -64,6 +65,7 @@ class DropdownSelect(MDBoxLayout, SettingControl):
                             if type(c3) == _Triangle:
                                 c3.size_hint = (1, None)
                                 break
+
 
 class MainApp(MDApp):
     def build(self):
@@ -89,17 +91,6 @@ class MainApp(MDApp):
             )
         )
 
-        #   Prediction Mode Swapping
-        self.screen.ids.prediction_mode_box.add_widget(
-            ToggleSwitch(
-                id="prediction_mode",
-                settings_name="prediction_mode",
-                switchTitle="Sign Prediction Mode",
-                leftLabel="Local",
-                rightLabel="Remote",
-            )
-        )
-
         #   Text-to-Speech
         self._get_expandable_container("text_to_speech").add_widget(
             ToggleSwitch(
@@ -112,12 +103,34 @@ class MainApp(MDApp):
         )
 
         #   Translation
-        self.dropdownSelects["translate_target"] = DropdownSelect(
-            id="translate_target",
+        # Create Dropdown widgets
+        self.dropdownSelects["translate_target_google"] = DropdownSelect(
+            id="translate_target_google",
             label="Translate to:",
-            menu_name="translate_menu",
-            initial_item=self.settings['supported_languages']['cn']
+            menu_name="translate_menu_google",
+            initial_item=self.settings[
+                "translate_instance"
+            ].getSupportedLanguagesByEngine("Google")["en"],
+            opacity=1,
+            size_hint_y=None,
+            disabled=False,
+            padding=(0, 0, 0, 0),
         )
+        self.dropdownSelects["translate_target_mymemory"] = DropdownSelect(
+            id="translate_target_mymemory",
+            label="Translate to:",
+            menu_name="translate_menu_mymemory",
+            initial_item=self.settings[
+                "translate_instance"
+            ].getSupportedLanguagesByEngine("MyMemory")["en-GB"],
+            opacity=0,
+            size_hint_y=0,
+            height=0,
+            disabled=True,
+            padding=(0, 0, 0, 0),
+        )
+
+        # Add to expandable container
         translate_expand_container = self._get_expandable_container("translate")
         translate_expand_container.add_widget(
             ToggleSwitch(
@@ -129,13 +142,28 @@ class MainApp(MDApp):
             )
         )
         translate_expand_container.add_widget(
-            self.dropdownSelects['translate_target']
+            self.dropdownSelects["translate_target_google"]
+        )
+        translate_expand_container.add_widget(
+            self.dropdownSelects["translate_target_mymemory"]
+        )
+
+        # Create menu instances
+        self.create_menu(
+            menu_name="translate_menu_google",
+            settings_name="translate_target_google",
+            dropdown_select_id="translate_target_google",
+            dict_of_items=self.settings[
+                "translate_instance"
+            ].getSupportedLanguagesByEngine("Google"),
         )
         self.create_menu(
-            menu_name="translate_menu",
-            settings_name="translate_target",
-            dropdown_select_id="translate_target",
-            dict_of_items=self.settings["supported_languages"],
+            menu_name="translate_menu_mymemory",
+            settings_name="translate_target_mymemory",
+            dropdown_select_id="translate_target_mymemory",
+            dict_of_items=self.settings[
+                "translate_instance"
+            ].getSupportedLanguagesByEngine("MyMemory"),
         )
 
         # Webcam
@@ -150,22 +178,15 @@ class MainApp(MDApp):
 
         #   Video
         self.settings["playing"] = False
-        self.settings["detection_mode"] = "Dynamic"     # Dynamic or Static
-        self.settings["prediction_mode"] = "Local"      # Local or Remote
+        self.settings["detection_mode"] = "Dynamic"  # Dynamic or Static
 
         #   Translation
         self.settings["translate"] = False
         self.settings["translate_target"] = ""
+        self.settings["translate_target_google"] = ""
+        self.settings["translate_target_mymemory"] = ""
         self.settings["translate_engine"] = "Google"
-
-        self.settings["supported_languages"] = {
-            "cn": "Chinese",
-            "my": "Malay",
-            "hk": "Hong Kong",
-            "jp": "Japanese",
-            "en": "English",
-            "es": "Spanish",
-        }
+        self.settings["translate_instance"] = TranslationModule()
 
         #   Text-to-speech
         self.settings["text_to_speech"] = False
@@ -242,7 +263,7 @@ MDBoxLayout:
         dropdown_select_id,
         dict_of_items: Dict,
         position="bottom",
-        width_mult=4,
+        width_mult=5,
     ):
         menu_items = [
             {
@@ -270,7 +291,13 @@ MDBoxLayout:
         self._get_dropdownSelect(dropdown_select_id).text = dict_of_items[x]
         self.menus[menu_name].dismiss()
 
-        print(self.settings)
+        if (
+            settings_name == "translate_target_google"
+            or settings_name == "translate_target_mymemory"
+        ):
+            self.settings['translate_instance'].setTarget(x)
+        print(self.settings['translate_target_google'], self.settings['translate_target_mymemory'])
+        print(self.settings['translate_instance'].target)
 
     def on_toggle_switch(
         self,
@@ -278,39 +305,43 @@ MDBoxLayout:
         segmented_item: MDSegmentedControlItem,
     ):
         self.settings[segmented_control.parent.settings_name] = segmented_item.text
-        print(self.settings)
-
+        # Special toggle for translation module (switch between different dropdowns)
+        if segmented_control.parent.settings_name == "translate_engine":
+            self._toggle_translation_dropdowns(segmented_item.text)
+            self.settings['translate_instance'].setTranslator(segmented_item.text)
 
     def on_active_expand(self, instance, active_value: bool):
-        self.settings[instance.parent.parent.settings_name] = active_value
-        for c in instance.parent.parent.children:
+        thisP = instance.parent.parent
+        self.settings[thisP.settings_name] = active_value
+
+        for c in thisP.children:
             if hasattr(c, "is_expandable_box"):
                 if active_value:
                     self._showWidget(c)
                 else:
                     self._hideWidget(c)
-        print(self.settings)
-            
 
-    def _showWidget(self, target_widget):
+    def _showWidget(self, target_widget, modify_parent=True):
         target_widget.opacity = 1
         target_widget.size_hint_y = None
         target_widget.height = target_widget.minimum_height
         target_widget.disabled = False
         target_widget.padding = (0, 0, 0, 0)
 
-        target_widget.parent.line_color = self.theme_cls.primary_color
-        target_widget.parent.padding = ("20dp", "5dp", "20dp", "5dp")
+        if modify_parent:
+            target_widget.parent.line_color = self.theme_cls.primary_color
+            target_widget.parent.padding = ("20dp", "5dp", "20dp", "5dp")
 
-    def _hideWidget(self, target_widget):
+    def _hideWidget(self, target_widget, modify_parent=True):
         target_widget.opacity = 0
         target_widget.size_hint_y = 0
         target_widget.height = 0
         target_widget.disabled = True
         target_widget.padding = (0, 0, 0, 0)
 
-        target_widget.parent.line_color = self.theme_cls.bg_normal
-        target_widget.parent.padding = ("20dp", "5dp", "20dp", "5dp")
+        if modify_parent:
+            target_widget.parent.line_color = self.theme_cls.bg_normal
+            target_widget.parent.padding = ("20dp", "5dp", "20dp", "5dp")
 
     def updateLabel(self, text_list, label_id):
         self.screen.ids[label_id].text = str(" ".join(text_list))
@@ -328,6 +359,22 @@ MDBoxLayout:
             instance.md_bg_color = "green"
             instance.text = "Start Detection"
             instance.icon = "play"
+
+    def _toggle_translation_dropdowns(self, translation_engine):
+        if translation_engine == "Google":
+            self._showWidget(
+                self.dropdownSelects["translate_target_google"], modify_parent=False
+            )
+            self._hideWidget(
+                self.dropdownSelects["translate_target_mymemory"], modify_parent=False
+            )
+        else:
+            self._hideWidget(
+                self.dropdownSelects["translate_target_google"], modify_parent=False
+            )
+            self._showWidget(
+                self.dropdownSelects["translate_target_mymemory"], modify_parent=False
+            )
 
 
 if __name__ == "__main__":
