@@ -4,7 +4,7 @@ import numpy as np
 import csv
 
 MODEL_PATH = "models"
-MODEL_NAME = "model_v3_5.keras"
+MODEL_NAME = "model_v4_4.keras"
 ACTION_LABELS_PATH = "action_labels.csv"
 
 
@@ -30,7 +30,7 @@ class ActionRecognitionModule:
             verbose=0,
             workers=4,
             use_multiprocessing=True,
-        )
+        )[0]
         predIndex = np.argmax(predResult)
         predLabel = self.action_labels[predIndex]
         predAccuracy = predResult[predIndex]

@@ -181,9 +181,9 @@ class MainApp(MDApp):
 
         #   Translation
         self.settings["translate"] = False
-        self.settings["translate_target"] = ""
-        self.settings["translate_target_google"] = ""
-        self.settings["translate_target_mymemory"] = ""
+        self.settings["translate_target"] = "en"
+        self.settings["translate_target_google"] = "en"
+        self.settings["translate_target_mymemory"] = "en-GB"
         self.settings["translate_engine"] = "Google"
         self.settings["translate_instance"] = TranslationModule()
 
@@ -199,7 +199,7 @@ class MainApp(MDApp):
 
         #   Others
         self.settings["raw_output"] = []
-        self.settings["transformed_output"] = []
+        self.settings["transformed_output"] = ""
         self.settings["max_output_len"] = 10
         self.settings["update_label_func"] = self.updateLabel
 

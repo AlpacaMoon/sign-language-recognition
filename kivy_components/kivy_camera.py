@@ -16,7 +16,7 @@ from sentence_generator import SentenceGeneratorModule
 from text_to_speech import TextToSpeechModule
 
 MAX_DETECTION_LENGTH = 20
-MAX_PREDICTION_LENGTH = 20
+MAX_PREDICTION_LENGTH = 10
 
 
 class KivyCamera(Image):
@@ -43,8 +43,10 @@ class KivyCamera(Image):
         self.dynamicDetectionHistory = deque(maxlen=MAX_DETECTION_LENGTH)
         self.dynamicPredictionHistory = deque(maxlen=MAX_PREDICTION_LENGTH)
         self.dynamicLastPredictionTime = time()
-        self.dynamicPredictionCooldown = 1.0
-        self.dynamicPredictionThreshold = 1.0
+        self.dynamicPredictionCooldown = 2.0
+        self.dynamicPredictionThreshold = 0.9
+        self.dynamicLastDetectionTime = time()
+        self.dynamicDetectionCooldown = 1 / 15
 
         # Static Prediction Variable
         self.staticPredictionHistory = deque(maxlen=MAX_DETECTION_LENGTH)
@@ -101,27 +103,38 @@ class KivyCamera(Image):
                 detectionResults, frame = self.featureExtractionModule.extractFeatures(
                     frame
                 )
+                if time() > self.dynamicLastDetectionTime + self.dynamicDetectionCooldown:
+                        
+                    self.dynamicLastDetectionTime = time()
 
-                # Save history
-                self.dynamicDetectionHistory.append(detectionResults)
-                if (
-                    len(self.dynamicDetectionHistory)
-                    == self.dynamicDetectionHistory.maxlen
-                    and time() - self.dynamicLastPredictionTime
-                    >= self.dynamicPredictionCooldown
-                ):
-                    # Predict word
-                    predLabel, predAccuracy = self.actionRecognitionModule.predict(
-                        np.array(self.dynamicDetectionHistory)
-                    )
+                    # Save history
+                    self.dynamicDetectionHistory.append(detectionResults)
+                    if (
+                        len(self.dynamicDetectionHistory)
+                        == self.dynamicDetectionHistory.maxlen
+                        and time() - self.dynamicLastPredictionTime
+                        >= self.dynamicPredictionCooldown
+                    ):
+                        # Predict word
+                        try:
+                            predLabel, predAccuracy = self.actionRecognitionModule.predict(
+                                np.array(list(self.dynamicDetectionHistory))
+                            )
+                        except Exception as e:
+                            raise Exception(e)
+                        finally:
+                            print(self.dynamicDetectionHistory)
+                            print(type(self.dynamicDetectionHistory))
+                            print(list(self.dynamicDetectionHistory))
+                            print(list(type(self.dynamicDetectionHistory)))
 
-                    # Append if accuracy is above threshold
-                    if predAccuracy >= self.dynamicPredictionThreshold:
-                        self.dynamicPredictionHistory.append(predLabel)
-                        self.dynamicLastPredictionTime = time()
+                        # Append if accuracy is above threshold
+                        if predAccuracy >= self.dynamicPredictionThreshold:
+                            self.dynamicPredictionHistory.append(str(predLabel) + " (" + str(predAccuracy) +  ")")
+                            self.dynamicLastPredictionTime = time()
 
-                # Output
-                self.settings["raw_output"] = list(self.dynamicPredictionHistory)
+                    # Output
+                    self.settings["raw_output"] = list(self.dynamicPredictionHistory)
 
             else:
                 # Static sign prediction
@@ -195,18 +208,13 @@ class KivyCamera(Image):
                         self.last_raw_output = current_raw_output
                         self.lastSentenceGeneration = time()
 
-                if (
-                    len(self.settings["transformed_output"])
-                    > self.settings["max_output_len"]
-                ):
-                    del self.settings["transformed_output"][0]
-
                 self.settings["update_label_func"](
                     self.settings["transformed_output"], "transformed_output_box"
                 )
 
             # Translate
             if self.settings["translate"]:
+                # print(self.settings["raw_output"], self.settings["transformed_output"])
                 translationTarget = ""
                 if self.settings["translate_engine"] == "Google":
                     translationTarget = self.settings["translate_target_google"]
@@ -221,11 +229,12 @@ class KivyCamera(Image):
                         )
                     ).split(" ")
 
-                self.settings["transformed_output"] = (
-                    self.settings["translate_instance"].translate(
-                        " ".join(self.settings["transformed_output"])
+                if len((" ".join(self.settings["raw_output"])).strip()) > 0:
+                    self.settings["transformed_output"] = (
+                        self.settings["translate_instance"].translate(
+                            self.settings["transformed_output"][:5000]
+                        )
                     )
-                ).split(" ")
 
             # Text to speech
             if self.settings["text_to_speech"]:
@@ -260,7 +269,7 @@ class KivyCamera(Image):
 
                     # Extract out the words that havent been said
                     splitPos = 0
-                    for i, a in enumerate(self.settings["transformed_output"]):
+                    for i, a in enumerate(self.settings["transformed_output"].split(" ")):
                         if a != self.tts_previouslySaid[i]:
                             splitPos = i
                             break
@@ -268,7 +277,7 @@ class KivyCamera(Image):
                     self.ttsModule.textToSpeech(
                         " ".join(self.settings["transformed_output"][splitPos:])
                     )
-                    self.tts_previouslySaid = self.settings["transformed_output"].copy()
+                    self.tts_previouslySaid = self.settings["transformed_output"].copy().split(" ")
 
             # Flip vertically because of how image texture is displayed
             frame = cv2.flip(frame, 0)
