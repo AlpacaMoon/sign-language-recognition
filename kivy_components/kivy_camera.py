@@ -117,21 +117,16 @@ class KivyCamera(Image):
                     ):
                         # Predict word
                         try:
-                            predLabel, predAccuracy = self.actionRecognitionModule.predict(
-                                np.array(list(self.dynamicDetectionHistory))
-                            )
-                        except Exception as e:
-                            raise Exception(e)
-                        finally:
-                            print(self.dynamicDetectionHistory)
-                            print(type(self.dynamicDetectionHistory))
-                            print(list(self.dynamicDetectionHistory))
-                            print(list(type(self.dynamicDetectionHistory)))
-
-                        # Append if accuracy is above threshold
-                        if predAccuracy >= self.dynamicPredictionThreshold:
-                            self.dynamicPredictionHistory.append(str(predLabel) + " (" + str(predAccuracy) +  ")")
-                            self.dynamicLastPredictionTime = time()
+                            predictionInput = np.array(list(self.dynamicDetectionHistory))
+                            predLabel, predAccuracy = self.actionRecognitionModule.predict(predictionInput)
+                            
+                            # Append if accuracy is above threshold
+                            if predAccuracy >= self.dynamicPredictionThreshold:
+                                self.dynamicPredictionHistory.append(str(predLabel) + " (" + str(predAccuracy) +  ")")
+                                self.dynamicLastPredictionTime = time()
+                        except ValueError as e:
+                            # Numpy bug that sometimes couldnt parse sequences
+                            pass
 
                     # Output
                     self.settings["raw_output"] = list(self.dynamicPredictionHistory)
