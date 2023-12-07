@@ -200,7 +200,7 @@ class KivyCamera(Image):
                         self.lastSentenceGeneration = time()
                     else:
                        # Content has changed, proceed with sentence generation
-                        segmentedWord = self.wordSegmentor.split(current_raw_output).to_string()
+                        segmentedWord = self.wordSegmentor.split(current_raw_output)
                         generatedSentence = self.sentenceGenerator.generate(segmentedWord.lower())
                         self.settings["transformed_output"] = generatedSentence
 
