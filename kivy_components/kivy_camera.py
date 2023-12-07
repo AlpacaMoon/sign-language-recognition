@@ -58,12 +58,15 @@ class KivyCamera(Image):
 
         # Word Segmentation
         self.wordSegmentor = WordSegmentationModule()
+        self.segmentationCooldown = 7.0
+        self.lastSegmentationTime = time()
 
         # Sentence Generator
         self.sentenceGenerator = SentenceGeneratorModule()
         self.last_raw_output = ""
         self.lastSentenceGeneration = time()
-        self.sentenceGenerationCooldown = 5.0
+        self.sentenceGenerationCooldown = 7.0
+        self.rawOutputProcessFlag = True
 
         # Text to Speech
         self.ttsModule = TextToSpeechModule()
@@ -99,12 +102,20 @@ class KivyCamera(Image):
 
             # Dynamic Sign Prediction
             if self.settings["detection_mode"] == "Dynamic":
+                # When mode changed, segment the static word and append to processedRawOutput
+                if self.rawOutputProcessFlag:
+                    self.settings["processed_raw_output"].append(self.wordSegmentor.split("".join(self.staticPredictionHistory)))
+                    self.staticPredictionHistory.clear()
+                    self.rawOutputProcessFlag = False
+                
                 # Dynamic sign prediction
                 detectionResults, frame = self.featureExtractionModule.extractFeatures(
                     frame
                 )
-                if time() > self.dynamicLastDetectionTime + self.dynamicDetectionCooldown:
-                        
+                if (
+                    time()
+                    > self.dynamicLastDetectionTime + self.dynamicDetectionCooldown
+                ):
                     self.dynamicLastDetectionTime = time()
 
                     # Save history
@@ -117,33 +128,52 @@ class KivyCamera(Image):
                     ):
                         # Predict word
                         try:
-                            predictionInput = np.array(list(self.dynamicDetectionHistory))
-                            predLabel, predAccuracy = self.actionRecognitionModule.predict(predictionInput)
-                            
+                            predictionInput = np.array(
+                                list(self.dynamicDetectionHistory)
+                            )
+                            (
+                                predLabel,
+                                predAccuracy,
+                            ) = self.actionRecognitionModule.predict(predictionInput)
+
                             # Append if accuracy is above threshold
                             if predAccuracy >= self.dynamicPredictionThreshold:
-                                self.dynamicPredictionHistory.append(str(predLabel) + " (" + str(predAccuracy) +  ")")
+                                self.dynamicPredictionHistory.append(
+                                    str(predLabel) + " (" + str(predAccuracy) + ")"
+                                )
                                 self.dynamicLastPredictionTime = time()
                         except ValueError as e:
                             # Numpy bug that sometimes couldnt parse sequences
                             pass
 
                     # Output
-                    self.settings["raw_output"] = list(self.dynamicPredictionHistory)
+                    self.settings["raw_output"].append(list(self.dynamicPredictionHistory))
+                    self.settings["processed_raw_output"].append(list(self.dynamicPredictionHistory))
+                    self.dynamicPredictionHistory.clear()
 
             else:
                 # Static sign prediction
-                # Hand Detection
-                staticDetectionResults, frame = self.staticFeatureExtractionModule.extractFeatures(rawFrame)
-                staticDetectionResults = staticDetectionResults.astype(np.float32)
+                if not self.rawOutputProcessFlag:
+                    self.rawOutputProcessFlag = True
                 
+                # Hand Detection
+                (
+                    staticDetectionResults,
+                    frame,
+                ) = self.staticFeatureExtractionModule.extractFeatures(frame)
+                staticDetectionResults = staticDetectionResults.astype(np.float32)
+
                 if time() <= self.staticLastDetectTime + self.staticPredictionCooldown:
                     pass
                 else:
-                    predIndex, predLabel, predAccuracy = self.staticRecognitionModule.predict(staticDetectionResults)          
-                    self.staticLastDetectTime = time()                    
-                    
-                    if predAccuracy >= self.staticDetectionThreshold:            
+                    (
+                        predIndex,
+                        predLabel,
+                        predAccuracy,
+                    ) = self.staticRecognitionModule.predict(staticDetectionResults)
+                    self.staticLastDetectTime = time()
+
+                    if predAccuracy >= self.staticDetectionThreshold:
                         # If predictionHistory is not empty
                         # If predlabel is the same as the last appended label
                         # Check if appendCooldown have passed since the last append
@@ -157,10 +187,10 @@ class KivyCamera(Image):
                             pass
                         else:
                             self.staticPredictionHistory.append(predLabel)
-                            self.settings['raw_output'] = list(self.staticPredictionHistory)
+                            self.settings["raw_output"].append(predLabel)
                             # Reset the timestamp when a new character is detected
                             self.staticLastAppendTime = time()
-
+                            
             # Output
             # self.settings["raw_output"].append("Hello")
             # self.settings['raw_output'] = list(self.predictionHistory)
@@ -173,30 +203,25 @@ class KivyCamera(Image):
             # Sentence Transformation
             if self.settings["sentence_assembler"]:
                 # Sentence Generator
-                # print(", ".join(self.settings["raw_output"]))
-                # print(self.wordSegmentor.split("".join(self.settings["raw_output"])).to_string())
-                
-                # if time() <= self.lastSentenceGeneration + self.sentenceGenerationCooldown:
-                #     pass
-                # else:
-                #     segmentedWord = self.wordSegmentor.split("".join(self.settings["raw_output"])).to_string()
-                #     generatedSentence = self.sentenceGenerator.generate(segmentedWord.lower())
-                #     self.settings["transformed_output"].append(generatedSentence)
-                #     self.lastSentenceGeneration = time()
-                    
-                if time() <= self.lastSentenceGeneration + self.sentenceGenerationCooldown:
+                if (
+                    time() <= self.lastSentenceGeneration + self.sentenceGenerationCooldown
+                ):
                     pass
                 else:
+                    if self.settings["detection_mode"] == "Static":
+                        self.settings["processed_raw_output"].append(self.wordSegmentor.split("".join(self.staticPredictionHistory)))
+                        self.staticPredictionHistory.clear()
+
                     # Combine the elements of raw_output into a single string
-                    current_raw_output = "".join(self.settings["raw_output"])
+                    current_raw_output = "".join(self.settings["processed_raw_output"])
 
                     # Check if the content has changed since the last generation
                     if current_raw_output == self.last_raw_output:
                         self.lastSentenceGeneration = time()
                     else:
-                       # Content has changed, proceed with sentence generation
-                        segmentedWord = self.wordSegmentor.split(current_raw_output)
-                        generatedSentence = self.sentenceGenerator.generate(segmentedWord.lower())
+                        generatedSentence = self.sentenceGenerator.generate(
+                            ", ".join(self.settings["processed_raw_output"]).lower()
+                        )
                         self.settings["transformed_output"] = generatedSentence
 
                         # Update last_raw_output to the current content
@@ -225,11 +250,9 @@ class KivyCamera(Image):
                     ).split(" ")
 
                 if len((" ".join(self.settings["raw_output"])).strip()) > 0:
-                    self.settings["transformed_output"] = (
-                        self.settings["translate_instance"].translate(
-                            self.settings["transformed_output"][:5000]
-                        )
-                    )
+                    self.settings["transformed_output"] = self.settings[
+                        "translate_instance"
+                    ].translate(self.settings["transformed_output"][:5000])
 
             # Text to speech
             if self.settings["text_to_speech"]:
@@ -264,7 +287,9 @@ class KivyCamera(Image):
 
                     # Extract out the words that havent been said
                     splitPos = 0
-                    for i, a in enumerate(self.settings["transformed_output"].split(" ")):
+                    for i, a in enumerate(
+                        self.settings["transformed_output"].split(" ")
+                    ):
                         if a != self.tts_previouslySaid[i]:
                             splitPos = i
                             break
@@ -272,7 +297,9 @@ class KivyCamera(Image):
                     self.ttsModule.textToSpeech(
                         " ".join(self.settings["transformed_output"][splitPos:])
                     )
-                    self.tts_previouslySaid = self.settings["transformed_output"].copy().split(" ")
+                    self.tts_previouslySaid = (
+                        self.settings["transformed_output"].copy().split(" ")
+                    )
 
             # Flip vertically because of how image texture is displayed
             frame = cv2.flip(frame, 0)

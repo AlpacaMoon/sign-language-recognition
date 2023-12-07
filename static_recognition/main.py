@@ -5,6 +5,7 @@ import csv
 
 MODEL_PATH = "models"
 MODEL_NAME = "static_model.h5"
+# MODEL_NAME = "static_model_ANN.h5"
 STATIC_LABELS_PATH = "static_labels.csv"
 
 
