@@ -16,7 +16,7 @@ from sentence_generator import SentenceGeneratorModule
 from text_to_speech import TextToSpeechModule
 
 MAX_DETECTION_LENGTH = 20
-MAX_PREDICTION_LENGTH = 10
+MAX_PREDICTION_LENGTH = 8
 
 
 class KivyCamera(Image):
@@ -43,10 +43,11 @@ class KivyCamera(Image):
         self.dynamicDetectionHistory = deque(maxlen=MAX_DETECTION_LENGTH)
         self.dynamicPredictionHistory = deque(maxlen=MAX_PREDICTION_LENGTH)
         self.dynamicLastPredictionTime = time()
-        self.dynamicPredictionCooldown = 2.0
+        self.dynamicPredictionCooldown = 3.0
         self.dynamicPredictionThreshold = 0.9
-        self.dynamicLastDetectionTime = time()
-        self.dynamicDetectionCooldown = 1 / 15
+        # self.dynamicLastDetectionTime = time()
+        # self.dynamicDetectionCooldown = 1 / 15
+        self.dynamicPreviousWord = ""
 
         # Static Prediction Variable
         self.staticPredictionHistory = deque(maxlen=MAX_DETECTION_LENGTH)
@@ -100,36 +101,47 @@ class KivyCamera(Image):
             # Dynamic Sign Prediction
             if self.settings["detection_mode"] == "Dynamic":
                 # Dynamic sign prediction
+                # if time() > self.dynamicLastDetectionTime + self.dynamicDetectionCooldown:
                 detectionResults, frame = self.featureExtractionModule.extractFeatures(
                     frame
                 )
-                if time() > self.dynamicLastDetectionTime + self.dynamicDetectionCooldown:
+                
+                # self.dynamicLastDetectionTime = time()
+                detectionResults = detectionResults.astype(np.float32)
+
+                # Save history
+                self.dynamicDetectionHistory.append(detectionResults)
+                if (
+                    len(self.dynamicDetectionHistory)
+                    == self.dynamicDetectionHistory.maxlen
+                    and time() > self.dynamicLastPredictionTime + self.dynamicPredictionCooldown
+                ):
+                    # Predict word
+                    try:
+                        predictionInput = np.array(list(self.dynamicDetectionHistory))
+                        predLabel, predAccuracy = self.actionRecognitionModule.predict(predictionInput)
                         
-                    self.dynamicLastDetectionTime = time()
-
-                    # Save history
-                    self.dynamicDetectionHistory.append(detectionResults)
-                    if (
-                        len(self.dynamicDetectionHistory)
-                        == self.dynamicDetectionHistory.maxlen
-                        and time() - self.dynamicLastPredictionTime
-                        >= self.dynamicPredictionCooldown
-                    ):
-                        # Predict word
-                        try:
-                            predictionInput = np.array(list(self.dynamicDetectionHistory))
-                            predLabel, predAccuracy = self.actionRecognitionModule.predict(predictionInput)
+                        if predLabel == 'NONE':
+                            self.dynamicLastPredictionTime = time() - self.dynamicPredictionCooldown + 0.1
+                        
+                        elif predLabel == self.dynamicPreviousWord:
+                            self.dynamicLastPredictionTime = time() - self.dynamicPredictionCooldown + 0.1
                             
-                            # Append if accuracy is above threshold
-                            if predAccuracy >= self.dynamicPredictionThreshold:
-                                self.dynamicPredictionHistory.append(str(predLabel) + " (" + str(predAccuracy) +  ")")
-                                self.dynamicLastPredictionTime = time()
-                        except ValueError as e:
-                            # Numpy bug that sometimes couldnt parse sequences
-                            pass
+                        # Append if accuracy is above threshold
+                        # elif predAccuracy >= self.dynamicPredictionThreshold:
+                        elif predAccuracy >= 0.8:
+                            self.dynamicPredictionHistory.append(str(predLabel) + " (" + str(predAccuracy) +  ")")
+                            self.dynamicPreviousWord = predLabel
 
-                    # Output
-                    self.settings["raw_output"] = list(self.dynamicPredictionHistory)
+                            if predAccuracy > 0.95:
+                                self.dynamicLastPredictionTime = time()
+
+                    except ValueError as e:
+                        # Numpy bug that sometimes couldnt parse sequences
+                        pass
+
+                # Output
+                self.settings["raw_output"] = list(self.dynamicPredictionHistory)
 
             else:
                 # Static sign prediction
