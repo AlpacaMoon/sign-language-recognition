@@ -1,4 +1,4 @@
-from typing import Dict
+
 from traceback import print_exc
 
 # Run this before importing any other modules
@@ -186,10 +186,12 @@ class MainApp(MDApp):
         self.settings["translate_target_mymemory"] = "en-GB"
         self.settings["translate_engine"] = "Google"
         self.settings["translate_instance"] = TranslationModule()
+        self.settings['language_changed'] = False
 
         #   Text-to-speech
         self.settings["text_to_speech"] = False
         self.settings["text_to_speech_engine"] = "Google"  # Google or MyMemory
+        self.settings['update_display_font'] = self.updateDisplayFont
 
         #   Show FPS
         self.settings["show_fps"] = False
@@ -201,6 +203,8 @@ class MainApp(MDApp):
         #   Others
         self.settings["raw_output"] = []
         self.settings["transformed_output"] = ""
+        self.settings["final_raw_output"] = ""
+        self.settings["final_transformed_output"] = ""
         self.settings["max_output_len"] = 10
         self.settings["update_label_func"] = self.updateLabel
 
@@ -261,7 +265,7 @@ MDBoxLayout:
         menu_name,
         settings_name,
         dropdown_select_id,
-        dict_of_items: Dict,
+        dict_of_items: dict,
         position="bottom",
         width_mult=5,
     ):
@@ -285,7 +289,7 @@ MDBoxLayout:
         )
 
     def _close_menu(
-        self, x, menu_name, settings_name, dropdown_select_id, dict_of_items: Dict
+        self, x, menu_name, settings_name, dropdown_select_id, dict_of_items: dict
     ):
         self.settings[settings_name] = x
         self._get_dropdownSelect(dropdown_select_id).text = dict_of_items[x]
@@ -296,8 +300,7 @@ MDBoxLayout:
             or settings_name == "translate_target_mymemory"
         ):
             self.settings['translate_instance'].setTarget(x)
-        print(self.settings['translate_target_google'], self.settings['translate_target_mymemory'])
-        print(self.settings['translate_instance'].target)
+            self.settings['language_changed'] = True
 
     def on_toggle_switch(
         self,
@@ -344,7 +347,14 @@ MDBoxLayout:
             target_widget.parent.padding = ("20dp", "5dp", "20dp", "5dp")
 
     def updateLabel(self, text_list, label_id):
-        self.screen.ids[label_id].text = str(" ".join(text_list))
+        if len(text_list) == 0:
+            text_list = "-------------------------"
+        
+        self.screen.ids[label_id].text = str(text_list)
+
+    def updateDisplayFont(self, rawOutputFont, transformedOutputFont):
+        self.screen.ids['raw_output_box'].font_name = rawOutputFont
+        self.screen.ids['transformed_output_box'].font_name = transformedOutputFont
 
     def toggle_play_stop_button(self, instance: MDFillRoundFlatIconButton):
         self.settings["playing"] = not self.settings["playing"]

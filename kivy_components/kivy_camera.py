@@ -45,8 +45,6 @@ class KivyCamera(Image):
         self.dynamicLastPredictionTime = time()
         self.dynamicPredictionCooldown = 3.0
         self.dynamicPredictionThreshold = 0.9
-        # self.dynamicLastDetectionTime = time()
-        # self.dynamicDetectionCooldown = 1 / 15
         self.dynamicPreviousWord = ""
 
         # Static Prediction Variable
@@ -68,6 +66,12 @@ class KivyCamera(Image):
         self.lastSentenceGeneration = time()
         self.sentenceGenerationCooldown = 7.0
         self.rawOutputProcessFlag = True
+
+        # Translation
+        self.translate_prev_raw_output = ""
+        self.translate_prev_translated_raw_output = ""
+        self.translate_prev_transformed_output = ""
+        self.translate_prev_translated_transformed_output = ""
 
         # Text to Speech
         self.ttsModule = TextToSpeechModule()
@@ -139,7 +143,8 @@ class KivyCamera(Image):
                         # Append if accuracy is above threshold
                         # elif predAccuracy >= self.dynamicPredictionThreshold:
                         elif predAccuracy >= 0.8:
-                            self.dynamicPredictionHistory.append(str(predLabel) + " (" + str(predAccuracy) +  ")")
+                            self.dynamicPredictionHistory.append(predLabel)
+                            # self.dynamicPredictionHistory.append(str(predLabel) + " (" + str(predAccuracy) +  ")")
                             self.dynamicPreviousWord = predLabel
 
                             if predAccuracy > 0.95:
@@ -152,8 +157,8 @@ class KivyCamera(Image):
                 # Output
                 self.settings["raw_output"] = list(self.dynamicPredictionHistory)
 
+            # Static sign prediction
             else:
-                # Static sign prediction
                 if not self.rawOutputProcessFlag:
                     self.rawOutputProcessFlag = True
                 
@@ -191,15 +196,9 @@ class KivyCamera(Image):
                             self.settings["raw_output"].append(predLabel)
                             # Reset the timestamp when a new character is detected
                             self.staticLastAppendTime = time()
-                            
-            # Output
-            # self.settings["raw_output"].append("Hello")
-            # self.settings['raw_output'] = list(self.predictionHistory)
 
             # Update Kivy Label
-            self.settings["update_label_func"](
-                self.settings["raw_output"], "raw_output_box"
-            )
+            self.settings['final_raw_output'] = " ".join(self.settings['raw_output'])
 
             # Sentence Transformation
             if self.settings["sentence_assembler"]:
@@ -229,31 +228,75 @@ class KivyCamera(Image):
                         self.last_raw_output = current_raw_output
                         self.lastSentenceGeneration = time()
 
-                self.settings["update_label_func"](
-                    self.settings["transformed_output"], "transformed_output_box"
-                )
+                self.settings['final_transformed_output'] = self.settings['transformed_output']
 
             # Translate
             if self.settings["translate"]:
-                # print(self.settings["raw_output"], self.settings["transformed_output"])
+
+                # Set target language for translation
                 translationTarget = ""
+                fontTarget = ""
                 if self.settings["translate_engine"] == "Google":
                     translationTarget = self.settings["translate_target_google"]
+                    fontTarget = self.settings['translate_instance'].getFont(translationTarget)
                 else:
                     translationTarget = self.settings["translate_target_mymemory"]
+                    fontTarget = self.settings['translate_instance'].getFont(
+                        self.settings['translate_instance'].mymemory_to_google_mapping(translationTarget)
+                    )
                 self.settings["translate_instance"].setTarget(translationTarget)
 
-                if self.settings["detection_mode"] == "Dynamic":
-                    self.settings["raw_output"] = (
-                        self.settings["translate_instance"].translate(
-                            " ".join(self.settings["raw_output"])
-                        )
-                    ).split(" ")
+                # Translate raw output if dynamic
+                if (
+                    self.settings['detection_mode'] == 'Dynamic' 
+                    and len(self.settings['raw_output']) > 0
+                ):                    
+                    if (
+                        self.translate_prev_raw_output != self.settings['raw_output'] 
+                        or self.settings['language_changed']
+                    ):
+                        self.translate_prev_raw_output = self.settings['raw_output']
+                        self.settings['language_changed'] = False
 
-                if len((" ".join(self.settings["raw_output"])).strip()) > 0:
-                    self.settings["transformed_output"] = self.settings[
-                        "translate_instance"
-                    ].translate(self.settings["transformed_output"][:5000])
+                        new_raw_output = self.settings['translate_instance'].translate(
+                            " ".join(self.settings['raw_output'])
+                        )
+
+                        # Override Raw output label
+                        self.settings['final_raw_output'] = new_raw_output
+                        self.translate_prev_translated_raw_output = new_raw_output
+                    else:
+                        # Use previous translation
+                        self.settings['final_raw_output'] = self.translate_prev_translated_raw_output
+                
+                # Translate transformed output for no matter dynamic or static mode
+                if (
+                    len(self.settings['transformed_output'].strip()) > 0
+                ):
+                    if (
+                        self.translate_prev_transformed_output != self.settings['transformed_output']
+                        or self.settings['language_changed']
+                    ):
+                        self.translate_prev_transformed_output = self.settings['transformed_output']
+                        self.settings['language_changed'] = False
+
+                        new_transformed_output = self.settings['translate_instance'].translate(
+                            self.settings['transformed_output']
+                        )
+
+                        # Override Raw output label
+                        self.settings['final_transformed_output'] = new_transformed_output
+                        self.translate_prev_translated_transformed_output = new_transformed_output
+                    else:
+                        # Use previous translation
+                        self.settings['final_transformed_output'] = self.translate_prev_translated_transformed_output
+
+                if self.settings['detection_mode'] == 'Dynamic':
+                    self.settings['update_display_font'](fontTarget, fontTarget)
+                else:
+                    self.settings['update_display_font'](
+                        self.settings['translate_instance'].font_files['default'], fontTarget
+                    )
 
             # Text to speech
             if self.settings["text_to_speech"]:
@@ -265,24 +308,13 @@ class KivyCamera(Image):
                         "translate_instance"
                     ].mymemoryToGoogle(self.settings["translate_target_mymemory"])
 
-                self.settings["translate_instance"].setTarget(translationTarget)
-
-                if (
+                if self.ttsModule.engine == "gTTS" or (
                     self.ttsModule.engine == "Pyttsx3"
-                    and translationTarget
-                    in [
-                        "en",
-                        "en-GB",
-                        "en-AU",
-                        "en-CA",
-                        "en-IN",
-                        "en-IE",
-                        "en-NZ",
-                        "en-SG",
-                        "en-ZA",
-                        "en-US",
-                    ]
-                ) or self.ttsModule.engine == "gTTS":
+                    and (
+                        translationTarget == "en"
+                        or translationTarget == "en-GB"
+                    )
+                ):
                     if self.ttsModule.engine == "gTTS":
                         self.ttsModule.setLang(translationTarget)
 
@@ -301,6 +333,14 @@ class KivyCamera(Image):
                     self.tts_previouslySaid = (
                         self.settings["transformed_output"].copy().split(" ")
                     )
+
+            self.settings["update_label_func"](
+                self.settings["final_raw_output"], "raw_output_box"
+            )
+            
+            self.settings["update_label_func"](
+                self.settings["final_transformed_output"], "transformed_output_box"
+            )
 
             # Flip vertically because of how image texture is displayed
             frame = cv2.flip(frame, 0)
