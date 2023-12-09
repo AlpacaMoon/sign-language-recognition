@@ -1,7 +1,7 @@
 import numpy as np
 from cvzone.HandTrackingModule import HandDetector
 from concurrent.futures import ThreadPoolExecutor
-
+import cv2
 from .cvzone_preprocess import *
 
 
@@ -52,8 +52,9 @@ class StaticFeatureExtractionModule:
             return detectionResults, frame
 
     def extractFeatures(self, frame):
+        # frame = cv2.flip(frame, 1)
         detectionResults, frame = self.parallelFeatureExtraction(
-            self.handDetector, frame
+            self.handDetector, frame, False
         )
-
+        
         return detectionResults, frame

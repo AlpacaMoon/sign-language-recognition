@@ -49,7 +49,7 @@ class KivyCamera(Image):
 
         # Static Prediction Variable
         self.staticPredictionHistory = deque(maxlen=MAX_DETECTION_LENGTH)
-        self.staticDetectionThreshold = 0.999
+        self.staticDetectionThreshold = 0.9999
         self.staticPredictionCooldown = 0.5
         self.staticAppendCooldown = 1.0
         self.staticLastAppendTime = time() + self.staticAppendCooldown
@@ -57,8 +57,6 @@ class KivyCamera(Image):
 
         # Word Segmentation
         self.wordSegmentor = WordSegmentationModule()
-        self.segmentationCooldown = 7.0
-        self.lastSegmentationTime = time()
 
         # Sentence Generator
         self.sentenceGenerator = SentenceGeneratorModule()
@@ -155,7 +153,7 @@ class KivyCamera(Image):
                         pass
 
                 # Output
-                self.settings["raw_output"] = list(self.dynamicPredictionHistory)
+                # self.settings["raw_output"] = list(self.dynamicPredictionHistory)
 
             # Static sign prediction
             else:
@@ -192,8 +190,8 @@ class KivyCamera(Image):
                             # Do nothing, don't append
                             pass
                         else:
-                            self.staticPredictionHistory.append(predLabel)
-                            self.settings["raw_output"].append(predLabel)
+                            self.staticPredictionHistory.append(str(predLabel))
+                            self.settings["raw_output"].append(str(predLabel))
                             # Reset the timestamp when a new character is detected
                             self.staticLastAppendTime = time()
 
@@ -223,6 +221,8 @@ class KivyCamera(Image):
                             ", ".join(self.settings["processed_raw_output"]).lower()
                         )
                         self.settings["transformed_output"] = generatedSentence
+                        # After generate clear data
+                        self.settings["processed_raw_output"] = []
 
                         # Update last_raw_output to the current content
                         self.last_raw_output = current_raw_output
