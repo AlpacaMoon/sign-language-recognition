@@ -121,6 +121,24 @@ Screen:
                             settings_name: "sentence_assembler"
                             switchLabel: "Sentence Assembler"
                             switchActive: True
+                           
+                        # Clear output button 
+                        MDStackLayout:
+                            adaptive_height: True
+                            size_hint_x: 1
+                            line_color: "gray"
+                            
+                            MDBoxLayout:
+                                adaptive_height: True
+                                MDFillRoundFlatIconButton:
+                                    id: clear_output
+                                    text: "Clear Output"
+                                    icon: ""
+                                    pos_hint: {"center_x" : 0.5, "center_y": 0.5}
+                                    padding: '20dp'
+                                    font_style: "H6"
+                                    on_release: app.toggle_clear_output()
+                                    md_bg_color: "green"
 
                         # Text-to-Speech
                         ExpandableBox:

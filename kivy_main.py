@@ -196,6 +196,7 @@ class MainApp(MDApp):
 
         #   Sentence Assembler
         self.settings["sentence_assembler"] = False
+        self.settings["processed_raw_output"] = []
 
         #   Others
         self.settings["raw_output"] = []
@@ -358,6 +359,10 @@ MDBoxLayout:
             instance.md_bg_color = "green"
             instance.text = "Start Detection"
             instance.icon = "play"
+            
+    def toggle_clear_output(self):
+        self.settings["raw_output"] = []
+        self.settings["transformed_output"] = ""
 
     def _toggle_translation_dropdowns(self, translation_engine):
         if translation_engine == "Google":
