@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 from collections import deque
+import copy
 from time import time
 
 from kivy.uix.image import Image
@@ -16,7 +17,7 @@ from sentence_generator import SentenceGeneratorModule
 from text_to_speech import TextToSpeechModule
 
 MAX_DETECTION_LENGTH = 20
-MAX_PREDICTION_LENGTH = 20
+MAX_PREDICTION_LENGTH = 10
 
 
 class KivyCamera(Image):
@@ -107,15 +108,16 @@ class KivyCamera(Image):
             # Dynamic Sign Prediction
             if self.settings["detection_mode"] == "Dynamic":
                 # When mode changed, segment the static word and append to processedRawOutput
-                # if self.rawOutputProcessFlag:
-                #     temp = self.wordSegmentor.split("".join(self.staticPredictionHistory))
-                #     print(temp)
-                #     for each in temp:
-                #         self.settings["processed_raw_output"].append(each)
+                if self.rawOutputProcessFlag:
+                    temp = self.wordSegmentor.split("".join(self.staticPredictionHistory))
+                    for each in temp:
+                        self.settings["processed_raw_output"].append(each)
                     
-                #     self.settings["raw_output"] = self.settings["processed_raw_output"]
-                #     self.staticPredictionHistory.clear()
-                #     self.rawOutputProcessFlag = False
+                    self.settings["raw_output"] = copy.deepcopy(self.settings["processed_raw_output"])
+                    # print(self.settings["processed_raw_output"])
+                    # print(self.settings["raw_output"])
+                    self.staticPredictionHistory.clear()
+                    self.rawOutputProcessFlag = False
                 
                 # Dynamic sign prediction
                 # if time() > self.dynamicLastDetectionTime + self.dynamicDetectionCooldown:
@@ -162,9 +164,6 @@ class KivyCamera(Image):
                     except ValueError as e:
                         # Numpy bug that sometimes couldnt parse sequences
                         pass
-
-                # Output
-                # self.settings["raw_output"] = list(self.dynamicPredictionHistory)
 
             # Static sign prediction
             else:
@@ -217,13 +216,15 @@ class KivyCamera(Image):
                         temp = self.wordSegmentor.split("".join(self.staticPredictionHistory))
                         for each in temp:
                             self.settings["processed_raw_output"].append(each)
-                        # self.settings["raw_output"] = self.settings["processed_raw_output"]
+                        self.settings["raw_output"] = copy.deepcopy(self.settings["processed_raw_output"])
                         self.staticPredictionHistory.clear()
 
                     # Combine the elements of raw_output into a single string
+                    current_raw_output = (", ".join(self.settings["raw_output"])).lower()
+                    print("----------------------Sentence Generator------------------------------")
                     print(self.settings["processed_raw_output"])
-                    print("-------------------------------------------------------------------------")
-                    current_raw_output = (", ".join(self.settings["processed_raw_output"])).lower()
+                    print(self.settings["raw_output"])
+                    print(current_raw_output)
                     # self.settings['final_transformed_output'] = current_raw_output
                     # Check if the content has changed since the last generation
                     if current_raw_output == self.last_raw_output or len(current_raw_output) == 0:
@@ -361,8 +362,9 @@ class KivyCamera(Image):
             # if len(self.settings['raw_output']) >= MAX_PREDICTION_LENGTH:
             #     del self.settings['raw_output'][0]
             
-            while len(' '.join(self.settings['raw_output'])) > 50:
+            while len(' '.join(self.settings['raw_output'])) > 70:
                 del self.settings['raw_output'][0]
+                del self.settings['processed_raw_output'][0]
 
             # Flip vertically because of how image texture is displayed
             frame = cv2.flip(frame, 0)

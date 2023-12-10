@@ -199,7 +199,7 @@ class MainApp(MDApp):
 
         #   Sentence Assembler
         self.settings["sentence_assembler"] = False
-        self.settings["processed_raw_output"] = deque(maxlen=10)
+        self.settings["processed_raw_output"] = []
 
         #   Others
         self.settings["raw_output"] = []
