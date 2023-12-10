@@ -212,15 +212,15 @@ class KivyCamera(Image):
                 if (
                     time() > self.lastSentenceGeneration + self.sentenceGenerationCooldown
                 ):
-                    if self.settings["detection_mode"] == "Static":
-                        temp = self.wordSegmentor.split("".join(self.staticPredictionHistory))
-                        for each in temp:
-                            self.settings["processed_raw_output"].append(each)
-                        self.settings["raw_output"] = copy.deepcopy(self.settings["processed_raw_output"])
-                        self.staticPredictionHistory.clear()
+                    # if self.settings["detection_mode"] == "Static":
+                    #     temp = self.wordSegmentor.split("".join(self.staticPredictionHistory))
+                    #     for each in temp:
+                    #         self.settings["processed_raw_output"].append(each)
+                    #     self.settings["raw_output"] = copy.deepcopy(self.settings["processed_raw_output"])
+                    #     self.staticPredictionHistory.clear()
 
                     # Combine the elements of raw_output into a single string
-                    current_raw_output = (", ".join(self.settings["raw_output"])).lower()
+                    current_raw_output = (", ".join(self.settings["processed_raw_output"])).lower()
                     print("----------------------Sentence Generator------------------------------")
                     print(self.settings["processed_raw_output"])
                     print(self.settings["raw_output"])

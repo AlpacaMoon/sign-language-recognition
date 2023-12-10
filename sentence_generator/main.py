@@ -45,32 +45,9 @@ class SentenceGeneratorModule:
 if __name__ == "__main__":
     # sg = SentenceGeneratorModule("cpu")
     sg = SentenceGeneratorModule()
-    start_time = time.time()
-    print(sg.generate("i"))
-    end_time = time.time()
-    print(end_time - start_time)
 
     start_time = time.time()
-    print(sg.generate("i/me, eat"))
-    end_time = time.time()
-    print(end_time - start_time)
-
-    start_time = time.time()
-    print(sg.generate("i/me, eat, cake, KLCC"))
-    end_time = time.time()
-    print(end_time - start_time)
-
-    start_time = time.time()
-    print(sg.generate("i/me, eat, cake, Alor Setar"))
-    end_time = time.time()
-    print(end_time - start_time)
-
-    start_time = time.time()
-    print(sg.generate("i/me, eat, cake, KL"))
-    end_time = time.time()
-    print(end_time - start_time)
-
-    start_time = time.time()
-    print(sg.generate("i/me, eat, cake, Peneng"))
+    print("Keywords = i/me, eat, cake, KLCC")
+    print("Result = " + sg.generate("i/me, eat, cake, KLCC"))
     end_time = time.time()
     print(end_time - start_time)
