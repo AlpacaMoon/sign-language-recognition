@@ -25,6 +25,8 @@ class ActionRecognitionModule:
 
     # Accepts an input numpy array of shape (20, 240)
     def predict(self, inputValue):
+        if inputValue.shape != (20, 240):
+            return "NONE", 0.00
         predResult = self.model.predict(
             np.expand_dims(inputValue, axis=0),
             verbose=0,

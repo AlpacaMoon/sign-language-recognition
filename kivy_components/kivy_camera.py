@@ -16,7 +16,7 @@ from sentence_generator import SentenceGeneratorModule
 from text_to_speech import TextToSpeechModule
 
 MAX_DETECTION_LENGTH = 20
-MAX_PREDICTION_LENGTH = 8
+MAX_PREDICTION_LENGTH = 20
 
 
 class KivyCamera(Image):
@@ -63,7 +63,7 @@ class KivyCamera(Image):
         self.last_raw_output = ""
         self.lastSentenceGeneration = time()
         self.sentenceGenerationCooldown = 7.0
-        self.rawOutputProcessFlag = True
+        self.rawOutputProcessFlag = False
 
         # Translation
         self.translate_prev_raw_output = ""
@@ -73,7 +73,8 @@ class KivyCamera(Image):
 
         # Text to Speech
         self.ttsModule = TextToSpeechModule()
-        self.tts_previouslySaid = []
+        self.ttsLastSaidTime = time()
+        self.ttsCooldown = 1.0
 
     def start(self):
         if not self.playing:
@@ -106,10 +107,15 @@ class KivyCamera(Image):
             # Dynamic Sign Prediction
             if self.settings["detection_mode"] == "Dynamic":
                 # When mode changed, segment the static word and append to processedRawOutput
-                if self.rawOutputProcessFlag:
-                    self.settings["processed_raw_output"].append(self.wordSegmentor.split("".join(self.staticPredictionHistory)))
-                    self.staticPredictionHistory.clear()
-                    self.rawOutputProcessFlag = False
+                # if self.rawOutputProcessFlag:
+                #     temp = self.wordSegmentor.split("".join(self.staticPredictionHistory))
+                #     print(temp)
+                #     for each in temp:
+                #         self.settings["processed_raw_output"].append(each)
+                    
+                #     self.settings["raw_output"] = self.settings["processed_raw_output"]
+                #     self.staticPredictionHistory.clear()
+                #     self.rawOutputProcessFlag = False
                 
                 # Dynamic sign prediction
                 # if time() > self.dynamicLastDetectionTime + self.dynamicDetectionCooldown:
@@ -123,8 +129,7 @@ class KivyCamera(Image):
                 # Save history
                 self.dynamicDetectionHistory.append(detectionResults)
                 if (
-                    len(self.dynamicDetectionHistory)
-                    == self.dynamicDetectionHistory.maxlen
+                    len(self.dynamicDetectionHistory) == self.dynamicDetectionHistory.maxlen
                     and time() > self.dynamicLastPredictionTime + self.dynamicPredictionCooldown
                 ):
                     # Predict word
@@ -140,17 +145,19 @@ class KivyCamera(Image):
                             
                         # Append if accuracy is above threshold
                         # elif predAccuracy >= self.dynamicPredictionThreshold:
-                        elif predAccuracy >= 0.8:
+                        elif predAccuracy >= 0.85:
                             # self.dynamicPredictionHistory.append(predLabel)
-                            self.dynamicPredictionHistory.append(str(predLabel) + " (" + str(predAccuracy)[:6] +  ")")
+                            # self.settings["raw_output"].append(str(predLabel) + " (" + str(predAccuracy)[:5] +  ")")
+                            # self.dynamicPredictionHistory.append(str(predLabel) + " (" + str(predAccuracy)[:6] +  ")")
                             # For merge output with static
                             self.settings["raw_output"].append(str(predLabel))
+                            self.dynamicPreviousWord = predLabel
+                            
                             # For sentence generation 
                             self.settings["processed_raw_output"].append(str(predLabel))
-                            self.dynamicPreviousWord = predLabel
 
-                            if predAccuracy > 0.95:
-                                self.dynamicLastPredictionTime = time()
+                            # if predAccuracy > 0.95:
+                            self.dynamicLastPredictionTime = time()
 
                     except ValueError as e:
                         # Numpy bug that sometimes couldnt parse sequences
@@ -171,9 +178,7 @@ class KivyCamera(Image):
                 ) = self.staticFeatureExtractionModule.extractFeatures(frame)
                 staticDetectionResults = staticDetectionResults.astype(np.float32)
 
-                if time() <= self.staticLastDetectTime + self.staticPredictionCooldown:
-                    pass
-                else:
+                if time() > self.staticLastDetectTime + self.staticPredictionCooldown:
                     (
                         predIndex,
                         predLabel,
@@ -206,34 +211,37 @@ class KivyCamera(Image):
             if self.settings["sentence_assembler"]:
                 # Sentence Generator
                 if (
-                    time() <= self.lastSentenceGeneration + self.sentenceGenerationCooldown
+                    time() > self.lastSentenceGeneration + self.sentenceGenerationCooldown
                 ):
-                    pass
-                else:
                     if self.settings["detection_mode"] == "Static":
-                        self.settings["processed_raw_output"].append(self.wordSegmentor.split("".join(self.staticPredictionHistory)))
+                        temp = self.wordSegmentor.split("".join(self.staticPredictionHistory))
+                        for each in temp:
+                            self.settings["processed_raw_output"].append(each)
+                        # self.settings["raw_output"] = self.settings["processed_raw_output"]
                         self.staticPredictionHistory.clear()
 
                     # Combine the elements of raw_output into a single string
-                    current_raw_output = "".join(self.settings["processed_raw_output"])
-
+                    print(self.settings["processed_raw_output"])
+                    print("-------------------------------------------------------------------------")
+                    current_raw_output = (", ".join(self.settings["processed_raw_output"])).lower()
+                    # self.settings['final_transformed_output'] = current_raw_output
                     # Check if the content has changed since the last generation
-                    if current_raw_output == self.last_raw_output or current_raw_output == []:
+                    if current_raw_output == self.last_raw_output or len(current_raw_output) == 0:
                         self.lastSentenceGeneration = time()
                     else:
                         generatedSentence = self.sentenceGenerator.generate(
-                            ", ".join(self.settings["processed_raw_output"]).lower()
+                            current_raw_output
                         )
                         self.settings["transformed_output"] = generatedSentence
                         # After generate clear data
-                        self.settings["processed_raw_output"] = []
+                        # self.settings["processed_raw_output"] = []
 
                         # Update last_raw_output to the current content
                         self.last_raw_output = current_raw_output
                         self.lastSentenceGeneration = time()
 
                 self.settings['final_transformed_output'] = self.settings['transformed_output']
-
+                # self.settings['final_transformed_output'] = current_raw_output
             # Translate
             if self.settings["translate"]:
 
@@ -310,7 +318,12 @@ class KivyCamera(Image):
                 )
 
             # Text to speech
-            if self.settings["text_to_speech"]:
+            if (
+                self.settings["text_to_speech"] 
+                and time() > self.ttsLastSaidTime + self.ttsCooldown
+                and len(self.settings['transformed_output']) > 0
+                and self.settings["sentence_assembler"]
+            ):
                 translationTarget = ""
                 if self.settings["translate_engine"] == "Google":
                     translationTarget = self.settings["translate_target_google"]
@@ -319,31 +332,23 @@ class KivyCamera(Image):
                         "translate_instance"
                     ].mymemoryToGoogle(self.settings["translate_target_mymemory"])
 
-                if self.ttsModule.engine == "gTTS" or (
+                print(translationTarget)
+                # self.ttsModule.switchEngine(self.settings["text_to_speech_engine"])
+                if self.ttsModule.engine == "Google" or (
                     self.ttsModule.engine == "Pyttsx3"
                     and (
                         translationTarget == "en"
                         or translationTarget == "en-GB"
                     )
                 ):
-                    if self.ttsModule.engine == "gTTS":
+                    if self.ttsModule.engine == "Google":
                         self.ttsModule.setLang(translationTarget)
 
-                    # Extract out the words that havent been said
-                    splitPos = 0
-                    for i, a in enumerate(
-                        self.settings["transformed_output"].split(" ")
-                    ):
-                        if a != self.tts_previouslySaid[i]:
-                            splitPos = i
-                            break
-
                     self.ttsModule.textToSpeech(
-                        " ".join(self.settings["transformed_output"][splitPos:])
+                        self.settings["final_transformed_output"]
                     )
-                    self.tts_previouslySaid = (
-                        self.settings["transformed_output"].copy().split(" ")
-                    )
+                    
+                    self.ttsLastSaidTime = time()
 
             self.settings["update_label_func"](
                 self.settings["final_raw_output"], "raw_output_box"
@@ -352,6 +357,12 @@ class KivyCamera(Image):
             self.settings["update_label_func"](
                 self.settings["final_transformed_output"], "transformed_output_box"
             )
+            
+            # if len(self.settings['raw_output']) >= MAX_PREDICTION_LENGTH:
+            #     del self.settings['raw_output'][0]
+            
+            while len(' '.join(self.settings['raw_output'])) > 50:
+                del self.settings['raw_output'][0]
 
             # Flip vertically because of how image texture is displayed
             frame = cv2.flip(frame, 0)

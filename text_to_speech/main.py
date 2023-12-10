@@ -23,11 +23,11 @@ class GttsModule(isTTS):
         ) as f:
             self.supportedLanguages = json.load(f)
 
-    def textToSpeech(self, text):
+    def textToSpeech(self, text, langCode):
         # Get audio from google server
-        tts = gTTS(text, lang=self.lang, tld='com')
+        tts = gTTS(text, lang=langCode, tld='com')
 
-        playAudioThread = Thread(target=self.playAudio, args=(tts))
+        playAudioThread = Thread(target=self.playAudio, args=(tts,))
         playAudioThread.start()
 
     def playAudio(self, tts: gTTS):
@@ -39,46 +39,47 @@ class GttsModule(isTTS):
         os.remove(abs_filepath)
 
 
-class Pyttsx3Module(isTTS):
-    class PlayAudioThreader(Thread):
-        def __init__(self, *args, **kwargs):
-            Thread.__init__(self, *args, **kwargs)
-            self.daemon = True
-            self.start()
+# class Pyttsx3Module(isTTS):
+#     class PlayAudioThreader(Thread):
+#         def __init__(self, *args, **kwargs):
+#             Thread.__init__(self, *args, **kwargs)
+#             self.daemon = True
+#             self.start()
 
-        def run(self):
-            tts_engine = pyttsx3.init()
-            tts_engine.say(self._args)
-            tts_engine.runAndWait()
+#         def run(self):
+#             tts_engine = pyttsx3.init()
+#             tts_engine.say(self._args)
+#             tts_engine.runAndWait()
 
-    def __init__(self, **kwargs):
-        self.supportedLanguages = {
-            "en": "english",
-        }
+#     def __init__(self, **kwargs):
+#         self.supportedLanguages = {
+#             "en": "english",
+#         }
 
-    def textToSpeech(self, text):
-        return Pyttsx3Module.PlayAudioThreader(args=text)
+#     def textToSpeech(self, text):
+#         return Pyttsx3Module.PlayAudioThreader(args=text)
 
 
 class TextToSpeechModule():
-    def __init__(self, engine="gTTS", **kwargs):
+    def __init__(self, engine="Google", **kwargs):
         self.engine = engine
         self.engineMappings = {
-            "gTTS": GttsModule(),
-            "Pyttsx3": Pyttsx3Module(),
+            "Google": GttsModule(),
+            # "Pyttsx3": Pyttsx3Module(),
         }
         self.lang = "en"
 
     def setLang(self, langCode):
         if langCode in self.getEngine().getSupportedLanguages().keys():
             self.getEngine().lang = langCode
+            self.lang = langCode
             return True
         
         # Language not Supported
         return False
 
     def textToSpeech(self, text):
-        return self.getEngine().textToSpeech(text)
+        return self.getEngine().textToSpeech(text, self.lang)
 
     def switchEngine(self, engineName):
         temp = self.engineMappings.get(engineName)

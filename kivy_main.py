@@ -1,5 +1,6 @@
 
 from traceback import print_exc
+from collections import deque
 
 # Run this before importing any other modules
 from kivy.config import Config
@@ -91,15 +92,15 @@ class MainApp(MDApp):
         )
 
         #   Text-to-Speech
-        self._get_expandable_container("text_to_speech").add_widget(
-            ToggleSwitch(
-                id="text_to_speech_engine",
-                settings_name="text_to_speech_engine",
-                switchTitle="Speech Engine",
-                leftLabel="Google",
-                rightLabel="Pyttsx3",
-            )
-        )
+        # self._get_expandable_container("text_to_speech").add_widget(
+        #     ToggleSwitch(
+        #         id="text_to_speech_engine",
+        #         settings_name="text_to_speech_engine",
+        #         switchTitle="Speech Engine",
+        #         leftLabel="Google",
+        #         rightLabel="Pyttsx3",
+        #     )
+        # )
 
         #   Translation
         # Create Dropdown widgets
@@ -190,7 +191,7 @@ class MainApp(MDApp):
 
         #   Text-to-speech
         self.settings["text_to_speech"] = False
-        self.settings["text_to_speech_engine"] = "Google"  # Google or MyMemory
+        self.settings["text_to_speech_engine"] = "Google"  # Google or Pyttsx3
         self.settings['update_display_font'] = self.updateDisplayFont
 
         #   Show FPS
@@ -198,7 +199,7 @@ class MainApp(MDApp):
 
         #   Sentence Assembler
         self.settings["sentence_assembler"] = False
-        self.settings["processed_raw_output"] = []
+        self.settings["processed_raw_output"] = deque(maxlen=10)
 
         #   Others
         self.settings["raw_output"] = []
@@ -312,6 +313,9 @@ MDBoxLayout:
         if segmented_control.parent.settings_name == "translate_engine":
             self._toggle_translation_dropdowns(segmented_item.text)
             self.settings['translate_instance'].setTranslator(segmented_item.text)
+            
+        elif segmented_control.parent.settings_name == "text_to_speech_engine":
+            self.settings['text_to_speech_engine'] = segmented_item.text
 
     def on_active_expand(self, instance, active_value: bool):
         thisP = instance.parent.parent
@@ -373,6 +377,7 @@ MDBoxLayout:
     def toggle_clear_output(self):
         self.settings["raw_output"] = []
         self.settings["transformed_output"] = ""
+        self.settings['processed_raw_output'] = []
 
     def _toggle_translation_dropdowns(self, translation_engine):
         if translation_engine == "Google":
