@@ -147,7 +147,7 @@ class KivyCamera(Image):
                             
                         # Append if accuracy is above threshold
                         # elif predAccuracy >= self.dynamicPredictionThreshold:
-                        elif predAccuracy >= 0.85:
+                        elif predAccuracy >= 0.9:
                             # self.dynamicPredictionHistory.append(predLabel)
                             # self.settings["raw_output"].append(str(predLabel) + " (" + str(predAccuracy)[:5] +  ")")
                             # self.dynamicPredictionHistory.append(str(predLabel) + " (" + str(predAccuracy)[:6] +  ")")
