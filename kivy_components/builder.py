@@ -43,13 +43,11 @@ Screen:
                                 
                             MDLabel: 
                                 id: raw_output_box
-                                
-                                text: "リンゴが欲しいのですが、これはだまされやすい膵炎のせいです、それともキツネが一度ならず二度、あるいはシマウマのように柵を飛び越えたのかもしれません"
-                                # text: "-------------------------"
+                                text: "-------------------------"
                                 font_style: "H5"
                                 bold: True
                                 color: "#bfbfbf"
-                                font_name: "fonts/NotoSerifJP-Bold.otf"
+                                font_name: "fonts/NotoSans-Bold.ttf"
 
                         MDBoxLayout:
                             adaptive_height: True
@@ -69,8 +67,7 @@ Screen:
                                 
                             MDLabel: 
                                 id: transformed_output_box
-                                text: "I want an apple 你是苹果我是李"
-                                # text: "-------------------------"
+                                text: "-------------------------"
                                 font_style: "H5"
                                 bold: True
                                 color: "#bfbfbf"
