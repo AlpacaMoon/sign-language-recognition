@@ -143,6 +143,10 @@ class KivyCamera(Image):
                         elif predAccuracy >= 0.8:
                             # self.dynamicPredictionHistory.append(predLabel)
                             self.dynamicPredictionHistory.append(str(predLabel) + " (" + str(predAccuracy)[:6] +  ")")
+                            # For merge output with static
+                            self.settings["raw_output"].append(str(predLabel))
+                            # For sentence generation 
+                            self.settings["processed_raw_output"].append(str(predLabel))
                             self.dynamicPreviousWord = predLabel
 
                             if predAccuracy > 0.95:
@@ -153,7 +157,7 @@ class KivyCamera(Image):
                         pass
 
                 # Output
-                self.settings["raw_output"] = list(self.dynamicPredictionHistory)
+                # self.settings["raw_output"] = list(self.dynamicPredictionHistory)
 
             # Static sign prediction
             else:
@@ -214,7 +218,7 @@ class KivyCamera(Image):
                     current_raw_output = "".join(self.settings["processed_raw_output"])
 
                     # Check if the content has changed since the last generation
-                    if current_raw_output == self.last_raw_output:
+                    if current_raw_output == self.last_raw_output or current_raw_output == []:
                         self.lastSentenceGeneration = time()
                     else:
                         generatedSentence = self.sentenceGenerator.generate(
