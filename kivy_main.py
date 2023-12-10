@@ -72,6 +72,8 @@ class MainApp(MDApp):
         self.theme_cls.primary_palette = "Red"
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_hue = "600"
+        self.theme_cls.material_style = "M2"
+
 
         Window.maximize()
         self.screen = Builder.load_string(main_builder_string)
