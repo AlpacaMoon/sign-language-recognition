@@ -141,8 +141,8 @@ class KivyCamera(Image):
                         # Append if accuracy is above threshold
                         # elif predAccuracy >= self.dynamicPredictionThreshold:
                         elif predAccuracy >= 0.8:
-                            self.dynamicPredictionHistory.append(predLabel)
-                            # self.dynamicPredictionHistory.append(str(predLabel) + " (" + str(predAccuracy) +  ")")
+                            # self.dynamicPredictionHistory.append(predLabel)
+                            self.dynamicPredictionHistory.append(str(predLabel) + " (" + str(predAccuracy)[:6] +  ")")
                             self.dynamicPreviousWord = predLabel
 
                             if predAccuracy > 0.95:
@@ -153,7 +153,7 @@ class KivyCamera(Image):
                         pass
 
                 # Output
-                # self.settings["raw_output"] = list(self.dynamicPredictionHistory)
+                self.settings["raw_output"] = list(self.dynamicPredictionHistory)
 
             # Static sign prediction
             else:
@@ -295,8 +295,15 @@ class KivyCamera(Image):
                     self.settings['update_display_font'](fontTarget, fontTarget)
                 else:
                     self.settings['update_display_font'](
-                        self.settings['translate_instance'].font_files['default'], fontTarget
+                        "fonts/" + self.settings['translate_instance'].font_files['default'], fontTarget
                     )
+
+            # Use default font
+            else:
+                self.settings['update_display_font'](
+                    "fonts/" + self.settings['translate_instance'].font_files['default'], 
+                    "fonts/" + self.settings['translate_instance'].font_files['default']
+                )
 
             # Text to speech
             if self.settings["text_to_speech"]:

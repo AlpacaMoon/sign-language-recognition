@@ -4,7 +4,7 @@ import numpy as np
 import csv
 
 MODEL_PATH = "models"
-MODEL_NAME = "model_v8_l2_1.keras"
+MODEL_NAME = "model_v9_l2_01.keras"
 ACTION_LABELS_PATH = "action_labels.csv"
 
 
