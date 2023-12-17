@@ -19,6 +19,8 @@ from text_to_speech import TextToSpeechModule
 MAX_DETECTION_LENGTH = 20
 MAX_PREDICTION_LENGTH = 10
 
+lagBuffer = deque(maxlen=30)
+
 
 class KivyCamera(Image):
     def __init__(self, fps, translation_settings, **kwargs):
@@ -378,4 +380,8 @@ class KivyCamera(Image):
                 size=(frame.shape[1], frame.shape[0]), colorfmt="bgr"
             )
             image_texture.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
-            self.texture = image_texture
+
+            lagBuffer.append(image_texture)
+            if (len(lagBuffer) == lagBuffer.maxlen):
+                self.texture = lagBuffer[0]
+            
