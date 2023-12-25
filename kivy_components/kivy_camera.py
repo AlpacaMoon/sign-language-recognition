@@ -350,7 +350,7 @@ class KivyCamera(Image):
             # if len(self.settings['raw_output']) >= MAX_PREDICTION_LENGTH:
             #     del self.settings['raw_output'][0]
             
-            while len(' '.join(self.settings['raw_output'])) > 70:
+            while len(' '.join(self.settings['processed_raw_output'])) > 70:
                 del self.settings['raw_output'][0]
                 del self.settings['processed_raw_output'][0]
 
@@ -370,5 +370,5 @@ class KivyCamera(Image):
             self.texture = image_texture
             # lagBuffer.append(image_texture)
             # if (len(lagBuffer) == lagBuffer.maxlen):
-            #     self.texture = lagBuffer[0]
+                # self.texture = lagBuffer[0]
             
