@@ -376,7 +376,18 @@ MDBoxLayout:
     def toggle_clear_output(self):
         self.settings["raw_output"] = []
         self.settings["transformed_output"] = ""
+        self.settings["final_raw_output"] = ""
+        self.settings["final_transformed_output"] = ""
         self.settings['processed_raw_output'] = []
+
+        # Manually update label if not running (not in the loop)
+        if not self.settings["playing"]:
+            self.settings["update_label_func"](
+                self.settings["final_raw_output"], "raw_output_box"
+            )
+            self.settings["update_label_func"](
+                self.settings["final_transformed_output"], "transformed_output_box"
+            )
 
     def _toggle_translation_dropdowns(self, translation_engine):
         if translation_engine == "Google":
