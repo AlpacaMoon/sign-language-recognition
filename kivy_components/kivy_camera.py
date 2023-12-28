@@ -240,6 +240,7 @@ class KivyCamera(Image):
                 if (
                     time() > self.lastSentenceGeneration + self.sentenceGenerationCooldown
                 ):
+                    current_raw_output = (", ".join(self.settings["processed_raw_output"])).lower()
                     # Check if the content has changed since the last generation
                     if current_raw_output == self.last_raw_output or len(current_raw_output) == 0:
                         self.lastSentenceGeneration = time()
