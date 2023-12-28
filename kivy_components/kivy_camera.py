@@ -271,7 +271,7 @@ class KivyCamera(Image):
                 else:
                     translationTarget = self.settings["translate_target_mymemory"]
                     fontTarget = self.settings['translate_instance'].getFont(
-                        self.settings['translate_instance'].mymemory_to_google_mapping(translationTarget)
+                        self.settings['translate_instance'].mymemory_to_google_mapping.get(translationTarget)
                     )
                 self.settings["translate_instance"].setTarget(translationTarget)
 
@@ -281,8 +281,8 @@ class KivyCamera(Image):
                     and len(self.settings['raw_output']) > 0
                 ):                    
                     if (
-                        self.translate_prev_raw_output != self.settings['raw_output'] 
-                        or self.settings['language_changed']
+                        self.settings['language_changed']
+                        or self.translate_prev_raw_output != self.settings['raw_output'] 
                     ):
                         self.translate_prev_raw_output = self.settings['raw_output']
                         self.settings['language_changed'] = False
@@ -306,7 +306,7 @@ class KivyCamera(Image):
                         self.settings['language_changed']
                         or self.translate_prev_transformed_output != self.settings['transformed_output']
                     ):
-                        # self.translate_prev_transformed_output = self.settings['final_transformed_output']
+                        self.translate_prev_transformed_output = self.settings['final_transformed_output']
                         self.settings['language_changed'] = False
 
                         new_transformed_output = self.settings['translate_instance'].translate(
