@@ -1,7 +1,5 @@
-import numpy as np
 from cvzone.HandTrackingModule import HandDetector
 from concurrent.futures import ThreadPoolExecutor
-import cv2
 from .cvzone_preprocess import *
 
 

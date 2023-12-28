@@ -3,7 +3,6 @@ import time
 import torch
 import os
 
-
 class SentenceGeneratorModule:
     hugginFaceModelId = "EngLip/flan-t5-sentence-generator"
     localModelPath = "./sentence_generator/model"
@@ -45,9 +44,9 @@ class SentenceGeneratorModule:
 if __name__ == "__main__":
     # sg = SentenceGeneratorModule("cpu")
     sg = SentenceGeneratorModule()
-
+    
     start_time = time.time()
-    print("Keywords = i/me, eat, cake, KLCC")
-    print("Result = " + sg.generate("i/me, eat, cake, KLCC"))
+    print("Keywords = he/she, eat, apple")
+    print("Result = " + sg.generate("teacher, explain, complex, concept, students"))
     end_time = time.time()
-    print(end_time - start_time)
+    # print(end_time - start_time)

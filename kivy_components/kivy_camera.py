@@ -240,20 +240,6 @@ class KivyCamera(Image):
                 if (
                     time() > self.lastSentenceGeneration + self.sentenceGenerationCooldown
                 ):
-                    # if self.settings["detection_mode"] == "Static":
-                    #     temp = self.wordSegmentor.split("".join(self.staticPredictionHistory))
-                    #     for each in temp:
-                    #         self.settings["processed_raw_output"].append(each)
-                    #     self.settings["raw_output"] = copy.deepcopy(self.settings["processed_raw_output"])
-                    #     self.staticPredictionHistory.clear()
-
-                    # Combine the elements of raw_output into a single string
-                    current_raw_output = (", ".join(self.settings["processed_raw_output"])).lower()
-                    print("----------------------Sentence Generator------------------------------")
-                    print(self.settings["processed_raw_output"])
-                    print(self.settings["raw_output"])
-                    print(current_raw_output)
-                    # self.settings['final_transformed_output'] = current_raw_output
                     # Check if the content has changed since the last generation
                     if current_raw_output == self.last_raw_output or len(current_raw_output) == 0:
                         self.lastSentenceGeneration = time()
@@ -387,7 +373,7 @@ class KivyCamera(Image):
             # if len(self.settings['raw_output']) >= MAX_PREDICTION_LENGTH:
             #     del self.settings['raw_output'][0]
             
-            while len(' '.join(self.settings['raw_output'])) > 70:
+            while len(' '.join(self.settings['processed_raw_output'])) > 70:
                 del self.settings['raw_output'][0]
                 del self.settings['processed_raw_output'][0]
 
@@ -404,8 +390,8 @@ class KivyCamera(Image):
             )
             image_texture.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
 
-            # self.texture = image_texture
-            lagBuffer.append(image_texture)
-            if (len(lagBuffer) == lagBuffer.maxlen):
-                self.texture = lagBuffer[0]
+            self.texture = image_texture
+            # lagBuffer.append(image_texture)
+            # if (len(lagBuffer) == lagBuffer.maxlen):
+                # self.texture = lagBuffer[0]
             
