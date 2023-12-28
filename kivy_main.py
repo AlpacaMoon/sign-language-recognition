@@ -1,10 +1,7 @@
-
 from traceback import print_exc
-from collections import deque
 
 # Run this before importing any other modules
 from kivy.config import Config
-
 Config.set("input", "mouse", "mouse,multitouch_on_demand")
 
 from kivy.lang import Builder

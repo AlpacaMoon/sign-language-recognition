@@ -23,20 +23,21 @@ class GttsModule(isTTS):
         ) as f:
             self.supportedLanguages = json.load(f)
 
-    def textToSpeech(self, text, langCode):
+    def textToSpeech(self, text, langCode, callback):
         # Get audio from google server
         tts = gTTS(text, lang=langCode, tld='com')
 
-        playAudioThread = Thread(target=self.playAudio, args=(tts,))
+        playAudioThread = Thread(target=self.playAudio, args=(tts, callback))
         playAudioThread.start()
 
-    def playAudio(self, tts: gTTS):
+    def playAudio(self, tts: gTTS, callback):
         filename = "temp_tts.mp3"
 
         abs_filepath = os.path.join(os.path.dirname(__file__), filename)
         tts.save(abs_filepath)
         playsound(abs_filepath)
         os.remove(abs_filepath)
+        callback()
 
 
 # class Pyttsx3Module(isTTS):
@@ -78,8 +79,8 @@ class TextToSpeechModule():
         # Language not Supported
         return False
 
-    def textToSpeech(self, text):
-        return self.getEngine().textToSpeech(text, self.lang)
+    def textToSpeech(self, text, callback=lambda:True):
+        return self.getEngine().textToSpeech(text, self.lang, callback)
 
     def switchEngine(self, engineName):
         temp = self.engineMappings.get(engineName)

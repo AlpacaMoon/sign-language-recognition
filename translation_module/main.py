@@ -2,7 +2,6 @@ from deep_translator import GoogleTranslator, MyMemoryTranslator
 import json
 import os
 
-
 class TranslationModule:
     # These are the language code conversions from MyMemory to Google
     # Other language codes are the same between MyMemory & Google (except those listed in 'only_in_google' below)

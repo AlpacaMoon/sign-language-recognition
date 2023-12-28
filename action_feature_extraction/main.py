@@ -6,7 +6,6 @@ from concurrent.futures import ThreadPoolExecutor
 
 from .cvzone_preprocess import *
 
-# OLD ONE
 class FeatureExtractionModule():
     def __init__(self, **kwargs):
         # Detectors
@@ -45,7 +44,7 @@ class FeatureExtractionModule():
         if results:
             results = preprocess_landmarks(results[:23])
         else:
-            results = np.zeros(23, dtype=int)
+            results = np.zeros(23*4, dtype=int)
         return results
 
     # Face Detection
@@ -90,11 +89,8 @@ class FeatureExtractionModule():
 
             return detectionResults, frame
 
-
     def extractFeatures(self, frame):
-
         detectionResults, frame = self.parallelFeatureExtraction(
             self.handDetector, self.faceDetector, self.poseDetector, frame
         )
-
         return detectionResults, frame
