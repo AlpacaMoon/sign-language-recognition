@@ -251,8 +251,9 @@ MDBoxLayout:
         if temp:
             temp.open()
 
-    # Create a MDDropdownMenu that corresponds to a given DropdownSelect id
-    # Requires passing a dictionary of drop down items, where key is t
+    # Function to create MDDropdownMenu Components
+    #   Create a MDDropdownMenu that corresponds to a given DropdownSelect id
+    #   Requires passing a dictionary of drop down items
     def create_menu(
         self,
         menu_name,
@@ -281,6 +282,7 @@ MDBoxLayout:
             width_mult=width_mult,
         )
 
+    # Function to close an opened menu
     def _close_menu(
         self, x, menu_name, settings_name, dropdown_select_id, dict_of_items: dict
     ):
@@ -288,25 +290,28 @@ MDBoxLayout:
         self._get_dropdownSelect(dropdown_select_id).text = dict_of_items[x]
         self.menus[menu_name].dismiss()
 
+        # Update flag for translation language change
         if (
             settings_name == "translate_target_google"
             or settings_name == "translate_target_mymemory"
         ):
             self.settings['translate_instance'].setTarget(x)
             self.settings['language_changed'] = True
-            print('langChanged', self.settings['language_changed'])
 
+    # Triggers when a segmented switch is toggled
     def on_toggle_switch(
         self,
         segmented_control: MDSegmentedControl,
         segmented_item: MDSegmentedControlItem,
     ):
         self.settings[segmented_control.parent.settings_name] = segmented_item.text
+
         # Special toggle for translation module (switch between different dropdowns)
         if segmented_control.parent.settings_name == "translate_engine":
             self._toggle_translation_dropdowns(segmented_item.text)
             self.settings['translate_instance'].setTranslator(segmented_item.text)
 
+    # Custom function to expand or hide a widget, used by ExpandableBox
     def on_active_expand(self, instance, active_value: bool):
         thisP = instance.parent.parent
         self.settings[thisP.settings_name] = active_value
@@ -340,6 +345,7 @@ MDBoxLayout:
             target_widget.parent.line_color = self.theme_cls.bg_normal
             target_widget.parent.padding = ("20dp", "5dp", "20dp", "5dp")
 
+    # Updates kivy label
     def updateLabel(self, text_list, label_id):
         if len(text_list) == 0:
             text_list = "-------------------------"
@@ -380,6 +386,7 @@ MDBoxLayout:
                 self.settings["final_transformed_output"], "transformed_output_box"
             )
 
+    # Used to show/hide the dropdowns (there's a weird padding if not hidden)
     def _toggle_translation_dropdowns(self, translation_engine):
         if translation_engine == "Google":
             self._showWidget(
@@ -399,18 +406,6 @@ MDBoxLayout:
 
 if __name__ == "__main__":
     try:
-        # # Server Communication API Link
-        # action_translation_uri = "ws://your-server-ip:8000/ws"
-
-        # # Shared Queue with the server communication thread
-        # server_comm_queue = Queue()
-
-        # # Start server communication thread
-        # server_comm_thread = Thread(
-        #     target=start_websocket_task, args=(action_translation_uri, server_comm_queue)
-        # )
-        # server_comm_thread.start()
-
         mainApp = MainApp()
         mainApp.run()
     except Exception as e:
