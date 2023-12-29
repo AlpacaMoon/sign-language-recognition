@@ -23,6 +23,7 @@ from kivy_components import KivyCamera, main_builder_string
 from translation_module import TranslationModule
 
 
+# Custom components
 class SettingControl:
     settings_name = StringProperty()
 
@@ -63,22 +64,25 @@ class DropdownSelect(MDBoxLayout, SettingControl):
                                 c3.size_hint = (1, None)
                                 break
 
-
+# Main App
 class MainApp(MDApp):
     def build(self):
+        # Themeing
         self.theme_cls.primary_palette = "Red"
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_hue = "600"
         self.theme_cls.material_style = "M2"
 
-
+        # Maximize window, sometimes doesn't work??
         Window.maximize()
+
+        # Build initial screen
         self.screen = Builder.load_string(main_builder_string)
 
         # Initialize self.settings and other stuff
         self._init__settings()
 
-        # Add custom widgets manually
+        # Add custom widgets manually on top of the initial screen
         #   Detection Mode Swapping Switch
         self.screen.ids.detection_mode_box.add_widget(
             ToggleSwitch(
@@ -90,19 +94,8 @@ class MainApp(MDApp):
             )
         )
 
-        #   Text-to-Speech
-        # self._get_expandable_container("text_to_speech").add_widget(
-        #     ToggleSwitch(
-        #         id="text_to_speech_engine",
-        #         settings_name="text_to_speech_engine",
-        #         switchTitle="Speech Engine",
-        #         leftLabel="Google",
-        #         rightLabel="Pyttsx3",
-        #     )
-        # )
-
-        #   Translation
-        # Create Dropdown widgets
+        # Translation Module
+        #   Create Dropdown Menu Widgets
         self.dropdownSelects["translate_target_google"] = DropdownSelect(
             id="translate_target_google",
             label="Translate to:",
@@ -129,7 +122,7 @@ class MainApp(MDApp):
             padding=(0, 0, 0, 0),
         )
 
-        # Add to expandable container
+        # Add dropdown widgets to expandable container
         translate_expand_container = self._get_expandable_container("translate")
         translate_expand_container.add_widget(
             ToggleSwitch(
@@ -147,7 +140,7 @@ class MainApp(MDApp):
             self.dropdownSelects["translate_target_mymemory"]
         )
 
-        # Create menu instances
+        # Create menu instances for the dropdown menus
         self.create_menu(
             menu_name="translate_menu_google",
             settings_name="translate_target_google",
@@ -169,6 +162,7 @@ class MainApp(MDApp):
         self.kvcamera = KivyCamera(fps=30, translation_settings=self.settings)
         self.screen.ids.video_area.add_widget(self.kvcamera)
 
+        # Render screen
         return self.screen
 
     def _init__settings(self):
@@ -190,7 +184,6 @@ class MainApp(MDApp):
 
         #   Text-to-speech
         self.settings["text_to_speech"] = False
-        self.settings["text_to_speech_engine"] = "Google"  # Google or Pyttsx3
         self.settings['update_display_font'] = self.updateDisplayFont
 
         #   Show FPS
@@ -312,9 +305,6 @@ MDBoxLayout:
         if segmented_control.parent.settings_name == "translate_engine":
             self._toggle_translation_dropdowns(segmented_item.text)
             self.settings['translate_instance'].setTranslator(segmented_item.text)
-            
-        elif segmented_control.parent.settings_name == "text_to_speech_engine":
-            self.settings['text_to_speech_engine'] = segmented_item.text
 
     def on_active_expand(self, instance, active_value: bool):
         thisP = instance.parent.parent

@@ -19,9 +19,6 @@ from text_to_speech import TextToSpeechModule
 MAX_DETECTION_LENGTH = 20
 MAX_PREDICTION_LENGTH = 10
 
-lagBuffer = deque(maxlen=20)
-
-
 class KivyCamera(Image):
     def __init__(self, fps, translation_settings, **kwargs):
         super(KivyCamera, self).__init__(**kwargs)
@@ -49,13 +46,6 @@ class KivyCamera(Image):
         self.dynamicPredictionCooldown = 3.0
         self.dynamicPredictionThreshold = 0.9
         self.dynamicPreviousWord = ""
-        self.dynamicPredBuffer = {
-            "nextTime": time(), 
-            "word": "NONE", 
-            "accuracy": 0.0, 
-            "cooldownTime": 0.25, 
-            'appended': True,
-        }
 
         # Static Prediction Variable
         self.staticPredictionHistory = deque(maxlen=MAX_DETECTION_LENGTH)
@@ -106,9 +96,11 @@ class KivyCamera(Image):
     def update(self, dt):
         ret, rawFrame = self.capture.read()
 
-        # Only start processing if the current frame has been updated
-        # This is the because the webcam's FPS might fluctuate (Especially under heavy load)
-        # Causing mismatch between video FPS/refresh rate and the webcam's FPS
+        # Only start processing if:
+        #   - The camera returned something, i.e. the camera is on
+        #   - The current frame is different from the previously detected frame. 
+        #       This is the because the webcam's FPS might fluctuate (Especially under heavy load)
+        #       Causing mismatch between video FPS/refresh rate and the webcam's FPS
         if ret and not np.array_equal(rawFrame, self.previousRawFrame):
             self.previousRawFrame = rawFrame
 
@@ -117,35 +109,34 @@ class KivyCamera(Image):
 
             # Dynamic Sign Prediction
             if self.settings["detection_mode"] == "Dynamic":
-                # When mode changed, segment the static word and append to processedRawOutput
+
+                # Pre-processing when switching from Static mode to Dynamic mode
+                #   When mode changed, segment the static word and append to processedRawOutput
                 if self.rawOutputProcessFlag:
                     temp = self.wordSegmentor.split("".join(self.staticPredictionHistory))
                     for each in temp:
                         self.settings["processed_raw_output"].append(each)
                     
                     self.settings["raw_output"] = copy.deepcopy(self.settings["processed_raw_output"])
-                    # print(self.settings["processed_raw_output"])
-                    # print(self.settings["raw_output"])
                     self.staticPredictionHistory.clear()
                     self.rawOutputProcessFlag = False
                 
-                # Dynamic sign prediction
+                # Feature Extraction
                 detectionResults, frame = self.featureExtractionModule.extractFeatures(
                     frame
                 )
-                
-                # self.dynamicLastDetectionTime = time()
                 detectionResults = detectionResults.astype(np.float32)
 
                 # Save history
                 self.dynamicDetectionHistory.append(detectionResults)
                 
+                # Start Prediction
                 if (
                     len(self.dynamicDetectionHistory) == self.dynamicDetectionHistory.maxlen
                     and time() > self.dynamicLastPredictionTime + self.dynamicPredictionCooldown
                 ):
-                    # Predict word
                     try:
+                        # Predict word
                         predictionInput = np.array(list(self.dynamicDetectionHistory))
                         predLabel, predAccuracy = self.actionRecognitionModule.predict(predictionInput)
                         
@@ -158,54 +149,22 @@ class KivyCamera(Image):
                             
                         # Append if accuracy is above threshold
                         elif predAccuracy >= self.dynamicPredictionThreshold:
+                            # Raw Output
                             self.settings["raw_output"].append(predLabel)
+                            
                             # For sentence generation 
                             self.settings["processed_raw_output"].append(predLabel)
 
                             self.dynamicPreviousWord = predLabel
                             self.dynamicLastPredictionTime = time()
 
-                            # # Push to buffer
-                            # if (time() > self.dynamicPredBuffer['nextTime']):
-                            #     self.dynamicPredBuffer['word'] = predLabel
-                            #     self.dynamicPredBuffer['accuracy'] = predAccuracy
-                            #     self.dynamicPredBuffer['appended'] = False
-                            #     self.dynamicPredBuffer['nextTime'] = time() + self.dynamicPredBuffer['cooldownTime']
-
-                            # elif (
-                            #     predAccuracy >= self.dynamicPredBuffer['accuracy']
-                            # ):
-                                
-                            #     if (predLabel == self.dynamicPredBuffer['word']):
-                            #         self.dynamicPredBuffer['accuracy'] = predAccuracy
-                            #         self.dynamicPredBuffer['appended'] = False
-                            #         # Don't reset cooldown if it's the same word (avoid infinite loops)
-
-                            #     else:
-                            #         self.dynamicPredBuffer['word'] = predLabel
-                            #         self.dynamicPredBuffer['accuracy'] = predAccuracy
-                            #         self.dynamicPredBuffer['appended'] = False
-                            #         self.dynamicPredBuffer['nextTime'] = time() + self.dynamicPredBuffer['cooldownTime']
-
                     except ValueError as e:
-                        # Numpy bug that sometimes couldnt parse sequences
+                        # Numpy bug that sometimes couldnt parse sequences??
                         pass
-
-                
-                # if (
-                #     time() > self.dynamicPredBuffer['nextTime']
-                #     and not self.dynamicPredBuffer['appended']
-                # ):
-                #     self.settings["raw_output"].append(str(self.dynamicPredBuffer['word']))
-                #     self.dynamicPreviousWord = self.dynamicPredBuffer['word']
-                #     self.dynamicLastPredictionTime = time()
-                #     self.dynamicPredBuffer['appended'] = True
-                    
-                #     # For sentence generation 
-                #     self.settings["processed_raw_output"].append(str(self.dynamicPredBuffer['word']))
 
             # Static sign prediction
             else:
+                # Flag for Switching between Static mode and Dynamic mode
                 if not self.rawOutputProcessFlag:
                     self.rawOutputProcessFlag = True
                 
@@ -242,7 +201,8 @@ class KivyCamera(Image):
                             # Reset the timestamp when a new character is detected
                             self.staticLastAppendTime = time()
 
-            # Update Kivy Label
+            # Update Final Raw Output
+            #   *This may be overwritten later, eg. for translations
             self.settings['final_raw_output'] = " ".join(self.settings['raw_output'])
 
             # Sentence Transformation
@@ -261,19 +221,18 @@ class KivyCamera(Image):
                         )
                         self.settings["transformed_output"] = generatedSentence
                         # After generate clear data
-                        # self.settings["processed_raw_output"] = []
 
                         # Update last_raw_output to the current content
                         self.last_raw_output = current_raw_output
                         self.lastSentenceGeneration = time()
 
                 self.settings['final_transformed_output'] = self.settings['transformed_output']
-                # self.settings['final_transformed_output'] = current_raw_output
             
             # Translate
             if self.settings["translate"]:
 
-                # Set target language for translation
+                # Set target language and target font for translation
+                #   *Some languages can only be displayed with their own font
                 translationTarget = ""
                 fontTarget = ""
                 if self.settings["translate_engine"] == "Google":
@@ -286,11 +245,13 @@ class KivyCamera(Image):
                     )
                 self.settings["translate_instance"].setTarget(translationTarget)
 
-                # Translate raw output if dynamic
+                # Only translate raw output if current mode is Dynamic
                 if (
                     self.settings['detection_mode'] == 'Dynamic' 
                     and len(self.settings['raw_output']) > 0
-                ):                    
+                ):
+                    # Send translate API request
+                    #   Only if the current sentence hasn't been translated before
                     if (
                         self.settings['language_changed']
                         or self.translate_prev_raw_output != self.settings['raw_output'] 
@@ -305,14 +266,17 @@ class KivyCamera(Image):
                         # Override Raw output label
                         self.settings['final_raw_output'] = new_raw_output
                         self.translate_prev_translated_raw_output = new_raw_output
+                    
+                    # Use previous translation to save resources
                     else:
-                        # Use previous translation
                         self.settings['final_raw_output'] = self.translate_prev_translated_raw_output
                 
-                # Translate transformed output for no matter dynamic or static mode
+                # Translate transformed output no matter dynamic or static mode
                 if (
                     len(self.settings['final_transformed_output'].strip()) > 0
                 ):
+                    # Send translate API request
+                    #   Only if the current sentence hasn't been translated before
                     if (
                         self.settings['language_changed']
                         or self.translate_prev_transformed_output != self.settings['transformed_output']
@@ -327,11 +291,12 @@ class KivyCamera(Image):
                         # Override Raw output label
                         self.settings['final_transformed_output'] = new_transformed_output
                         self.translate_prev_translated_transformed_output = new_transformed_output
+
+                    # Use previous translation to save resources
                     else:
-                        # Use previous translation
                         self.settings['final_transformed_output'] = self.translate_prev_translated_transformed_output
 
-                # Update fonts
+                # Update font
                 if self.settings['detection_mode'] == 'Dynamic':
                     self.settings['update_display_font'](fontTarget, fontTarget)
                 else:
@@ -346,17 +311,20 @@ class KivyCamera(Image):
                     "fonts/" + self.settings['translate_instance'].font_files['default']
                 )
 
-            # Text to speech
+            # Text-to-speech
             if (
                 self.settings["text_to_speech"] 
                 and time() > self.ttsNextTime
                 and self.settings["sentence_assembler"]
                 and len(self.settings['final_transformed_output']) > 0
             ):
+                # Periodically check if the sentence was updated or not every 1 second
                 if self.ttsLastSaid == self.settings['final_transformed_output']:
                     self.ttsNextTime = time() + 1.0
 
+                # Perform TTS
                 else:
+                    # Get language
                     translationTarget = ""
                     if self.settings["translate_engine"] == "Google":
                         translationTarget = self.settings["translate_target_google"]
@@ -367,24 +335,24 @@ class KivyCamera(Image):
 
                     self.ttsModule.setLang(translationTarget)
 
+                    # Generate Speech
                     self.ttsModule.textToSpeech(
                         self.settings["final_transformed_output"]
                     )
 
+                    # Post-processing
                     self.ttsNextTime = time() + self.ttsCooldown
                     self.ttsLastSaid = self.settings['final_transformed_output']
 
+            # Update Kivy labels
             self.settings["update_label_func"](
                 self.settings["final_raw_output"], "raw_output_box"
             )
-            
             self.settings["update_label_func"](
                 self.settings["final_transformed_output"], "transformed_output_box"
             )
             
-            # if len(self.settings['raw_output']) >= MAX_PREDICTION_LENGTH:
-            #     del self.settings['raw_output'][0]
-            
+            # Limit the display size of the output
             while len(' '.join(self.settings['processed_raw_output'])) > 70:
                 del self.settings['raw_output'][0]
                 del self.settings['processed_raw_output'][0]
@@ -401,9 +369,4 @@ class KivyCamera(Image):
                 size=(frame.shape[1], frame.shape[0]), colorfmt="bgr"
             )
             image_texture.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
-
             self.texture = image_texture
-            # lagBuffer.append(image_texture)
-            # if (len(lagBuffer) == lagBuffer.maxlen):
-                # self.texture = lagBuffer[0]
-            
