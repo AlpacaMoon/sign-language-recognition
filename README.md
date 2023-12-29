@@ -1,9 +1,15 @@
 # Sign Language to Text Translator
-This is a local executable app written in Python and KivyMD that allows you to perform American Sign Languages (ASL) in front of your webcam and translates them into text or audio outputs. It is capable of recognising both static (26 alphabets & the numbers 1-10) and dynamic signs (121 words).
-
-Additionally, this application also provides accessibility functions such as language translation and text-to-speech.
+This is a local executable app written in Python and KivyMD that allows you to perform American Sign Languages (ASL) in front of your webcam and translates them into text or audio outputs.
 
 This application makes no outbound calls for any record keeping or tracking.
+
+## Features
+- Translate static signs (26 alphabets & the numbers 1-10)
+- Translate dynamic signs ([121 words](#Dynamic Sign Vocabulary))
+- Convert raw output to fluent human-readable sentences
+- Concatenate single characters from static signs into words
+- Language translation
+- Text-to-Speech
 
 
 ## Installation
