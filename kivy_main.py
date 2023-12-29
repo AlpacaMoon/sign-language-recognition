@@ -294,6 +294,7 @@ MDBoxLayout:
         ):
             self.settings['translate_instance'].setTarget(x)
             self.settings['language_changed'] = True
+            print('langChanged', self.settings['language_changed'])
 
     def on_toggle_switch(
         self,

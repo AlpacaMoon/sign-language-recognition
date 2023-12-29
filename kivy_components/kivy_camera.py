@@ -257,7 +257,6 @@ class KivyCamera(Image):
                         or self.translate_prev_raw_output != self.settings['raw_output'] 
                     ):
                         self.translate_prev_raw_output = self.settings['raw_output']
-                        self.settings['language_changed'] = False
 
                         new_raw_output = self.settings['translate_instance'].translate(
                             " ".join(self.settings['raw_output'])
@@ -319,7 +318,7 @@ class KivyCamera(Image):
                 and len(self.settings['final_transformed_output']) > 0
             ):
                 # Periodically check if the sentence was updated or not every 1 second
-                if self.ttsLastSaid == self.settings['final_transformed_output']:
+                if self.ttsLastSaid == self.settings['final_transformed_output'] and not self.settings['language_changed']:
                     self.ttsNextTime = time() + 1.0
 
                 # Perform TTS
