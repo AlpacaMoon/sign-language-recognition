@@ -149,49 +149,60 @@ class KivyCamera(Image):
                         predictionInput = np.array(list(self.dynamicDetectionHistory))
                         predLabel, predAccuracy = self.actionRecognitionModule.predict(predictionInput)
                         
+                        # Skip detection for 0.1 seconds if detected nothing 
+                        #   The 0.1 seconds is to save resources,
+                        #   enforce a max 10 predictions per second, 
+                        #   else it'll run prediction every loop
                         if predLabel == 'NONE' or predLabel == self.dynamicPreviousWord:
                             self.dynamicLastPredictionTime = time() - self.dynamicPredictionCooldown + 0.1
                             
                         # Append if accuracy is above threshold
                         elif predAccuracy >= self.dynamicPredictionThreshold:
-                            # Push to buffer
-                            if (time() > self.dynamicPredBuffer['nextTime']):
-                                self.dynamicPredBuffer['word'] = predLabel
-                                self.dynamicPredBuffer['accuracy'] = predAccuracy
-                                self.dynamicPredBuffer['appended'] = False
-                                self.dynamicPredBuffer['nextTime'] = time() + self.dynamicPredBuffer['cooldownTime']
+                            self.settings["raw_output"].append(predLabel)
+                            # For sentence generation 
+                            self.settings["processed_raw_output"].append(predLabel)
 
-                            elif (
-                                predAccuracy >= self.dynamicPredBuffer['accuracy']
-                            ):
+                            self.dynamicPreviousWord = predLabel
+                            self.dynamicLastPredictionTime = time()
+
+                            # # Push to buffer
+                            # if (time() > self.dynamicPredBuffer['nextTime']):
+                            #     self.dynamicPredBuffer['word'] = predLabel
+                            #     self.dynamicPredBuffer['accuracy'] = predAccuracy
+                            #     self.dynamicPredBuffer['appended'] = False
+                            #     self.dynamicPredBuffer['nextTime'] = time() + self.dynamicPredBuffer['cooldownTime']
+
+                            # elif (
+                            #     predAccuracy >= self.dynamicPredBuffer['accuracy']
+                            # ):
                                 
-                                if (predLabel == self.dynamicPredBuffer['word']):
-                                    self.dynamicPredBuffer['accuracy'] = predAccuracy
-                                    self.dynamicPredBuffer['appended'] = False
-                                    # Don't reset cooldown if it's the same word (avoid infinite loops)
+                            #     if (predLabel == self.dynamicPredBuffer['word']):
+                            #         self.dynamicPredBuffer['accuracy'] = predAccuracy
+                            #         self.dynamicPredBuffer['appended'] = False
+                            #         # Don't reset cooldown if it's the same word (avoid infinite loops)
 
-                                else:
-                                    self.dynamicPredBuffer['word'] = predLabel
-                                    self.dynamicPredBuffer['accuracy'] = predAccuracy
-                                    self.dynamicPredBuffer['appended'] = False
-                                    self.dynamicPredBuffer['nextTime'] = time() + self.dynamicPredBuffer['cooldownTime']
+                            #     else:
+                            #         self.dynamicPredBuffer['word'] = predLabel
+                            #         self.dynamicPredBuffer['accuracy'] = predAccuracy
+                            #         self.dynamicPredBuffer['appended'] = False
+                            #         self.dynamicPredBuffer['nextTime'] = time() + self.dynamicPredBuffer['cooldownTime']
 
                     except ValueError as e:
                         # Numpy bug that sometimes couldnt parse sequences
                         pass
 
                 
-                if (
-                    time() > self.dynamicPredBuffer['nextTime']
-                    and not self.dynamicPredBuffer['appended']
-                ):
-                    self.settings["raw_output"].append(str(self.dynamicPredBuffer['word']))
-                    self.dynamicPreviousWord = self.dynamicPredBuffer['word']
-                    self.dynamicLastPredictionTime = time()
-                    self.dynamicPredBuffer['appended'] = True
+                # if (
+                #     time() > self.dynamicPredBuffer['nextTime']
+                #     and not self.dynamicPredBuffer['appended']
+                # ):
+                #     self.settings["raw_output"].append(str(self.dynamicPredBuffer['word']))
+                #     self.dynamicPreviousWord = self.dynamicPredBuffer['word']
+                #     self.dynamicLastPredictionTime = time()
+                #     self.dynamicPredBuffer['appended'] = True
                     
-                    # For sentence generation 
-                    self.settings["processed_raw_output"].append(str(self.dynamicPredBuffer['word']))
+                #     # For sentence generation 
+                #     self.settings["processed_raw_output"].append(str(self.dynamicPredBuffer['word']))
 
             # Static sign prediction
             else:
