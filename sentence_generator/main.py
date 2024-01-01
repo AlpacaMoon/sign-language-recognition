@@ -40,13 +40,3 @@ class SentenceGeneratorModule:
         self.tokenizer.save_pretrained(self.localModelPath)
         self.model = AutoModelForSeq2SeqLM.from_pretrained(self.hugginFaceModelId)
         self.model.save_pretrained(self.localModelPath)
-
-if __name__ == "__main__":
-    # sg = SentenceGeneratorModule("cpu")
-    sg = SentenceGeneratorModule()
-    
-    start_time = time.time()
-    print("Keywords = he/she, eat, apple")
-    print("Result = " + sg.generate("teacher, explain, complex, concept, students"))
-    end_time = time.time()
-    # print(end_time - start_time)
