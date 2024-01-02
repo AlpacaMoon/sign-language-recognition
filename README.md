@@ -14,7 +14,14 @@ This application makes no outbound calls for any record keeping or tracking.
 
 ## Table of Contents
 
-[TOC]
+- [Sign Language to Text Translator](#sign-language-to-text-translator)
+  - [Features](#features)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Dynamic Sign Vocabulary](#dynamic-sign-vocabulary)
+  - [Static Sign Vocabulary](#static-sign-vocabulary)
+
+
 
 ------------
 
