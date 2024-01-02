@@ -5,11 +5,25 @@ This application makes no outbound calls for any record keeping or tracking.
 
 ## Features
 - Translate static signs (26 alphabets & the numbers 1-10)
-- Translate dynamic signs ([121 words](#Dynamic Sign Vocabulary))
+- Translate dynamic signs ([121 words](#dynamic-sign-vocabulary))
 - Convert raw output to fluent human-readable sentences
 - Concatenate single characters from static signs into words
 - Language translation
 - Text-to-Speech
+
+
+## Table of Contents
+
+- [Sign Language to Text Translator](#sign-language-to-text-translator)
+  - [Features](#features)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Dynamic Sign Vocabulary](#dynamic-sign-vocabulary)
+  - [Static Sign Vocabulary](#static-sign-vocabulary)
+
+
+
+------------
 
 
 ## Installation
@@ -20,6 +34,8 @@ To run the source code, you need to download the dependencies listed in `require
 py -3.9 -m pip install -r "../requirements.txt"
 ```
 Then simply run the `kivy_main.py` file.
+
+> When you launch the application for the first time, it will take some time to download the necessary model files from a remote server.
 
 
 ## Dynamic Sign Vocabulary
@@ -149,3 +165,44 @@ The application is capable of recognising 121 words for now, and the model is tr
 | 120 | close/shut | https://www.handspeak.com/word/407/ | https://www.handspeak.com/word/c/clo/close-hour.mp4 |
 | 121 | close/shut | https://www.handspeak.com/word/407/ | https://www.handspeak.com/word/c/clo/close-hour2.mp4 |
 
+## Static Sign Vocabulary
+The application is capable of recognising 26 alphabets and 10 numbers from 1-10 for now, and the model is trained using our own data created according to [HandSpeak](https://www.handspeak.com/ "HandSpeak") for alphabets and [American Society for Deaf Children](https://deafchildren.org/ "American Society for Deaf Children") for numbers.
+
+| No | Word  | Definition Reference                          |
+|-------|-------|----------------------------------------------|
+| 1     | A     | https://www.handspeak.com/word/2460/          |
+| 2     | B     | https://www.handspeak.com/word/2461/          |
+| 3     | C     | https://www.handspeak.com/word/2462/          |
+| 4     | D     | https://www.handspeak.com/word/2463/          |
+| 5     | E     | https://www.handspeak.com/word/2464/          |
+| 6     | F     | https://www.handspeak.com/word/2465/          |
+| 7     | G     | https://www.handspeak.com/word/2466/          |
+| 8     | H     | https://www.handspeak.com/word/2467/          |
+| 9     | I     | https://www.handspeak.com/word/2468/          |
+| 10    | J     | https://www.handspeak.com/word/2469/          |
+| 11    | K     | https://www.handspeak.com/word/2470/          |
+| 12    | L     | https://www.handspeak.com/word/2471/          |
+| 13    | M     | https://www.handspeak.com/word/2472/          |
+| 14    | N     | https://www.handspeak.com/word/2473/          |
+| 15    | O     | https://www.handspeak.com/word/2474/          |
+| 16    | P     | https://www.handspeak.com/word/2475/          |
+| 17    | Q     | https://www.handspeak.com/word/2476/          |
+| 18    | R     | https://www.handspeak.com/word/2477/          |
+| 19    | S     | https://www.handspeak.com/word/2478/          |
+| 20    | T     | https://www.handspeak.com/word/2479/          |
+| 21    | U     | https://www.handspeak.com/word/2480/          |
+| 22    | V     | https://www.handspeak.com/word/2481/          |
+| 23    | W     | https://www.handspeak.com/word/2482/          |
+| 24    | X     | https://www.handspeak.com/word/2483/          |
+| 25    | Y     | https://www.handspeak.com/word/2484/          |
+| 26    | Z     | https://www.handspeak.com/word/2485/          |
+| 27    | one   | https://deafchildren.org/2019/07/free-asl-numbers-chart/ |
+| 28    | two   | https://deafchildren.org/2019/07/free-asl-numbers-chart/ |
+| 29    | three | https://deafchildren.org/2019/07/free-asl-numbers-chart/ |
+| 30    | four  | https://deafchildren.org/2019/07/free-asl-numbers-chart/ |
+| 31    | five  | https://deafchildren.org/2019/07/free-asl-numbers-chart/ |
+| 32    | six   | https://deafchildren.org/2019/07/free-asl-numbers-chart/ |
+| 33    | seven | https://deafchildren.org/2019/07/free-asl-numbers-chart/ |
+| 34    | eight | https://deafchildren.org/2019/07/free-asl-numbers-chart/ |
+| 35    | nine  | https://deafchildren.org/2019/07/free-asl-numbers-chart/ |
+| 36    | ten   | https://deafchildren.org/2019/07/free-asl-numbers-chart/ |
