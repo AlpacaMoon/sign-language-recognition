@@ -35,6 +35,8 @@ py -3.9 -m pip install -r "../requirements.txt"
 ```
 Then simply run the `kivy_main.py` file.
 
+> When you launch the application for the first time, it will take some time to download the necessary model files from a remote server.
+
 
 ## Dynamic Sign Vocabulary
 The application is capable of recognising 121 words for now, and the model is trained using our own data created according to [HandSpeak](https://www.handspeak.com/ "HandSpeak"). 
