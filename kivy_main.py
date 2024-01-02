@@ -76,7 +76,7 @@ class MainApp(MDApp):
         # Maximize window, sometimes doesn't work??
         Window.maximize()
 
-        # Build initial screen
+        # Build screen
         self.screen = Builder.load_string(main_builder_string)
 
         # Initialize self.settings and other stuff
