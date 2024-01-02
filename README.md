@@ -5,11 +5,18 @@ This application makes no outbound calls for any record keeping or tracking.
 
 ## Features
 - Translate static signs (26 alphabets & the numbers 1-10)
-- Translate dynamic signs ([121 words](#Dynamic Sign Vocabulary))
+- Translate dynamic signs ([121 words](#dynamic-sign-vocabulary))
 - Convert raw output to fluent human-readable sentences
 - Concatenate single characters from static signs into words
 - Language translation
 - Text-to-Speech
+
+
+## Table of Contents
+
+[TOC]
+
+------------
 
 
 ## Installation
