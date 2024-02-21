@@ -34,6 +34,9 @@ To run the source code, you need to download the dependencies listed in `require
 py -3.9 -m pip install -r "requirements.txt"
 ```
 Then simply run the `kivy_main.py` file.
+```
+py -3.9 -m kivy_main.py
+```
 
 > When you launch the application for the first time, it will take some time to download the necessary model files from a remote server.
 
