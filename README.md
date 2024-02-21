@@ -31,7 +31,7 @@ This application was developed and tested on Python 3.9. We do not guarantee its
 
 To run the source code, you need to download the dependencies listed in `requirements.txt`.
 ```
-py -3.9 -m pip install -r "../requirements.txt"
+py -3.9 -m pip install -r "requirements.txt"
 ```
 Then simply run the `kivy_main.py` file.
 
